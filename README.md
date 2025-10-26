@@ -9,8 +9,7 @@
 
 # 🍔 **Veezy**
 ### _Tu turno sin filas en el Burger Master Colombia_
-
-![Banner](https://i.imgur.com/bP8C2m1.png)
+<img src = "Veezy.png" width= "100"> 
 
 ---
 
