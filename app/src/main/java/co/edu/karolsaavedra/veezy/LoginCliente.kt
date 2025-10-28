@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LoginClienteScreen(
     onSuccesfuloginCliente: () -> Unit = {},
-    onClickRegisterCliente: () -> Unit = {}
+    onClickloginCliente: () -> Unit = {}
 ) {
     var inputEmail by remember { mutableStateOf("") }
     var inputPassword by remember { mutableStateOf("") }
@@ -66,7 +66,6 @@ fun LoginClienteScreen(
                 .verticalScroll(rememberScrollState())//hacer que el teclado no tape los campos que se van a llenar
                 .background(Color(0xFFFAF0F0))
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
