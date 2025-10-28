@@ -1,7 +1,7 @@
 # Veezy Mater
 
 ## Karol Stefany Saavedra Suarez
-## Noel Santigo Mendez
+## Noel Santigo Mendez Jaimes
 ## Edson Julián Díaz Pinilla
 
 
