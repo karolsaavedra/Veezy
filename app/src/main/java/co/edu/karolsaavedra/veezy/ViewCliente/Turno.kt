@@ -52,9 +52,9 @@ fun TurnoScreen() {
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.plus),
+                        painter = painterResource(id = R.drawable.close),
                         contentDescription = "Cerrar",
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(100.dp),
                         contentScale = ContentScale.Fit
                     )
                 }
