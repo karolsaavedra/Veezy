@@ -164,7 +164,7 @@ fun StartScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFAF0F0)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(50.dp)
 
                 ) {
                     Text(
@@ -175,7 +175,7 @@ fun StartScreen(
 
                     )
                 }
-                TextButton(onClick = onClickRegisterCliente ) {
+                TextButton(onClick = onClickRegisterCliente) {
                     Text(
                         text = "¿No tienes una cuenta? Regístrate",
                         color = Color(0xFFEFB1B1)

@@ -52,6 +52,7 @@ fun AgregarProductoScreen() {
                     .padding(horizontal = 32.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(40.dp))
 
                 IconButton(
                     onClick = { " "},
@@ -63,11 +64,11 @@ fun AgregarProductoScreen() {
                         painter = painterResource(id = R.drawable.arrow),
                         contentDescription = "Volver",
                         tint = Color.White,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(50.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(60.dp))
 
                 // ===== CONTENEDOR DE IMAGEN =====
                 Box(

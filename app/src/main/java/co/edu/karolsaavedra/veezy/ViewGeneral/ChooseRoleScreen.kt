@@ -147,7 +147,7 @@ fun ChooseRoleScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF863939)
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
                         .width(200.dp)
                         .height(55.dp)
@@ -165,7 +165,7 @@ fun ChooseRoleScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF863939)
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
                         .width(200.dp)
                         .height(55.dp)

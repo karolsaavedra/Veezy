@@ -45,7 +45,7 @@ fun InfoProducto() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 28.dp, vertical = 54.dp),
+                    .padding(horizontal = 15.dp, vertical = 54.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -91,7 +91,7 @@ fun InfoProducto() {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 40.dp, vertical = 24.dp),
+                .padding(horizontal = 40.dp, vertical = 40.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -74,12 +74,7 @@ fun MenuScreen() {
                     tint = Color.White,
                     modifier = Modifier.size(28.dp)
                 )
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Perfil",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
+
             }
             Text(
                 text = "Participantes",

@@ -11,31 +11,25 @@ import co.edu.karolsaavedra.veezy.ViewCliente.RegisterCliente
 import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
 import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.ClinetsWaitingScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.FirstPageRestaurante
 import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
 
 @Composable
-
-fun NavigationApp(){
+fun NavigationApp() {
     val myNavController = rememberNavController()
-    var myStartDestination: String= "start"
-
-
 
     NavHost(
-        navController =  myNavController,
+        navController = myNavController,
         startDestination = "startApp"
     ) {
-
         //  Pantalla inicial
         composable("startApp") {
             StartScreen(
-                onClickRegisterCliente = {myNavController.navigate("registerCliente") },
+                onClickRegisterCliente = { myNavController.navigate("registerCliente") },
                 onClickStartapp = { myNavController.navigate("chooseRole") }
             )
         }
 
-        //  Registro
+        //  Registro cliente
         composable("registerCliente") {
             RegisterCliente(
                 onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") },
@@ -66,15 +60,7 @@ fun NavigationApp(){
                 onClickBackloginRestaurante = { myNavController.popBackStack() }
             )
         }
-/*
-        //  Pantalla principal cliente
-        composable("mainCliente") {
-            Productos(
-                onProfileClick = { myNavController.navigate("profileCliente") },
-                onSettingsClick = { myNavController.navigate("settingsCliente") }
-            )
-        }
-*/
+
         //  Perfil Cliente
         composable("profileCliente") {
             ProfileClienteScreen(
@@ -88,28 +74,5 @@ fun NavigationApp(){
                 onClickBackConfig = { myNavController.popBackStack() }
             )
         }
-/*
-        //  Editar menú
-        composable("editarMenu") {
-            EditarMenuScreen(
-                onNextClick = { myNavController.navigate("confirmarMenu") },
-                onBack = { myNavController.popBackStack() }
-            )
-        }
-
-        // Confirmar menú (esta se borra al confirmar)
-        composable("confirmarMenu") {
-            ConfirmarMenuScreen(
-                onConfirmClick = {
-                    // Navega a la primera pantalla restaurante y borra la pila previa
-                    myNavController.navigate("firstScreenRestaurant") {
-                        popUpTo("editarMenu") { inclusive = true } // borra las pantallas anteriores
-                    }
-                }
-            )
-        }
-*/
     }
 }
-
-

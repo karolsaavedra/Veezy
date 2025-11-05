@@ -57,7 +57,7 @@ fun EncabezadoConfiguracion(onClickBackConfig: () -> Unit = {}) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 70.dp),
+                    .padding(horizontal = 20.dp, vertical = 50.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -86,7 +86,7 @@ fun EncabezadoConfiguracion(onClickBackConfig: () -> Unit = {}) {
                         imageVector = Icons.Default.KeyboardArrowRight,
                         contentDescription = "Ir",
                         tint = Color(0xFF003366),
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(80.dp)
                     )
                 }
             }
