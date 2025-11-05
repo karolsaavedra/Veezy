@@ -4,8 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import co.edu.karolsaavedra.veezy.ViewCliente.EncabezadoConfiguracion
+import co.edu.karolsaavedra.veezy.ViewCliente.LoginClienteScreen
+import co.edu.karolsaavedra.veezy.ViewCliente.ProfileClienteScreen
+import co.edu.karolsaavedra.veezy.ViewCliente.RegisterCliente
+import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
+import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
+import co.edu.karolsaavedra.veezy.ViewRestaurante.ClinetsWaitingScreen
+import co.edu.karolsaavedra.veezy.ViewRestaurante.FirstPageRestaurante
+import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
 
- /*@Composable
+@Composable
 
 fun NavigationApp(){
     val myNavController = rememberNavController()
@@ -14,76 +23,93 @@ fun NavigationApp(){
 
 
     NavHost(
-        navController = myNavController,
-        startDestination = "start"
+        navController =  myNavController,
+        startDestination = "startApp"
     ) {
-        // Pantalla de inicio
-        composable("start") {
+
+        //  Pantalla inicial
+        composable("startApp") {
             StartScreen(
-                onClickStartapp = {
-                    myNavController.navigate("choose_role")
-                },
-                onSuccesfulstart = {
-                    myNavController.navigate("home_cliente") {
-                        popUpTo("start") { inclusive = true }
-                    }
-                }
+                onClickRegisterCliente = {myNavController.navigate("registerCliente") },
+                onClickStartapp = { myNavController.navigate("chooseRole") }
             )
         }
 
-        // Pantalla para elegir tipo de usuario
-        composable("choose_role") {
+        //  Registro
+        composable("registerCliente") {
+            RegisterCliente(
+                onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") },
+                onClickBackRegister = { myNavController.popBackStack() }
+            )
+        }
+
+        //  Elección de rol
+        composable("chooseRole") {
             ChooseRoleScreen(
-                onClickCliente = {
-                    myNavController.navigate("login_cliente")
-                },
-                onClickRestaurante = {
-                    myNavController.navigate("login_restaurante")
-                }
+                onClickCliente = { myNavController.navigate("loginCliente") },
+                onClickRestaurante = { myNavController.navigate("loginRestaurante") }
             )
         }
 
-        // Login Cliente
-        composable("login_cliente") {
+        //  Login Cliente
+        composable("loginCliente") {
             LoginClienteScreen(
-                onSuccesfuloginCliente = {
-                    myNavController.navigate("home_cliente") {
-                        popUpTo("start") { inclusive = true }
-                    }
-                },
-                onClickRegisterCliente = {
-                    // Aquí podrías ir a una pantalla de registro si la agregas
-                }
+                onSuccesfuloginCliente = { myNavController.navigate("mainCliente") },
+                onClickBackLoginCliente = { myNavController.popBackStack() }
+            )
+        }
+
+        //  Login Restaurante
+        composable("loginRestaurante") {
+            LoginRestauranteScreen(
+                onSuccesfuloginRestaurante = { myNavController.navigate("firstScreenRestaurant") },
+                onClickBackloginRestaurante = { myNavController.popBackStack() }
             )
         }
 /*
-        // Login Restaurante
-        composable("login_restaurante") {
-            LoginRestauranteScreen(
-                onSuccesfulogin = {
-                    myNavController.navigate("home_restaurante") {
-                        popUpTo("start") { inclusive = true }
-                    }
-                },
-                onClickRegister = {
-                    // Igual que arriba, si añades un registro
-                }
+        //  Pantalla principal cliente
+        composable("mainCliente") {
+            Productos(
+                onProfileClick = { myNavController.navigate("profileCliente") },
+                onSettingsClick = { myNavController.navigate("settingsCliente") }
+            )
+        }
+*/
+        //  Perfil Cliente
+        composable("profileCliente") {
+            ProfileClienteScreen(
+                onClickCerrarSesion = { myNavController.popBackStack() }
             )
         }
 
-        // Home Cliente
-        composable("home_cliente") {
-            HomeClienteScreen()
+        //  Configuración Cliente
+        composable("settingsCliente") {
+            EncabezadoConfiguracion(
+                onClickBackConfig = { myNavController.popBackStack() }
+            )
+        }
+/*
+        //  Editar menú
+        composable("editarMenu") {
+            EditarMenuScreen(
+                onNextClick = { myNavController.navigate("confirmarMenu") },
+                onBack = { myNavController.popBackStack() }
+            )
         }
 
-        // Home Restaurante
-        composable("home_restaurante") {
-            HomeRestauranteScreen()
+        // Confirmar menú (esta se borra al confirmar)
+        composable("confirmarMenu") {
+            ConfirmarMenuScreen(
+                onConfirmClick = {
+                    // Navega a la primera pantalla restaurante y borra la pila previa
+                    myNavController.navigate("firstScreenRestaurant") {
+                        popUpTo("editarMenu") { inclusive = true } // borra las pantallas anteriores
+                    }
+                }
+            )
         }
+*/
     }
+}
 
- */
-}
-}
-}
-  */
+

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 
 @Preview(showBackground = true)
 @Composable
-fun FirtPageRestaurante(
+fun FirstPageRestaurante(
     onClickEdit: () -> Unit = {},
     OnclickRegisterStartapp: () -> Unit = {}
 

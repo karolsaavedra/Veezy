@@ -425,7 +425,7 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                onClick = { onClickRegisterCliente() },
+                onClick = { onSuccesfuRegisterCliente() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF863939)
                 ),

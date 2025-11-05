@@ -41,7 +41,9 @@ import co.edu.karolsaavedra.veezy.R
 @Composable
 fun StartScreen(
     onClickStartapp: () -> Unit = {},
-    onSuccesfulstart: () -> Unit = {}
+    onSuccesfulstart: () -> Unit = {},
+    onClickRegisterCliente: () -> Unit = {}
+
 
 
 ) {
@@ -166,14 +168,14 @@ fun StartScreen(
 
                 ) {
                     Text(
-                        text = "Iniciar sesión",
+                        text = "Comenzar",
                         color = Color(0xFF7F4F4F),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
 
                     )
                 }
-                TextButton(onClick = onClickStartapp ) {
+                TextButton(onClick = onClickRegisterCliente ) {
                     Text(
                         text = "¿No tienes una cuenta? Regístrate",
                         color = Color(0xFFEFB1B1)

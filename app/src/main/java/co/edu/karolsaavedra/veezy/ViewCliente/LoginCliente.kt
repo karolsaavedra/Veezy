@@ -62,7 +62,7 @@ import co.edu.karolsaavedra.veezy.R
 fun LoginClienteScreen(
     onSuccesfuloginCliente: () -> Unit = {},
     onClickloginCliente: () -> Unit = {},
-    onClickBack: () -> Unit = {}
+    onClickBackLoginCliente: () -> Unit = {}
 
 ) {
     var inputEmail by remember { mutableStateOf("") }
@@ -75,7 +75,7 @@ fun LoginClienteScreen(
         topBar = {
             // 🔹 Flecha de retroceso en la parte superior izquierda
             IconButton(
-                onClick = { onClickBack() },
+                onClick = { onClickBackLoginCliente() },
                 modifier = Modifier.padding(start = 8.dp, top = 8.dp)
             ) {
                 Icon(
@@ -298,7 +298,7 @@ fun LoginClienteScreen(
                     Box(
                         modifier = Modifier
                             .size(30.dp)
-                            .offset(x = 12.dp) // 🔸 Desplaza el círculo hacia afuera del borde
+                            .offset(x = 12.dp) //  Desplaza el círculo hacia afuera del borde
                             .background(
                                 color = Color(0xFFFFFFFF),
                                 shape = CircleShape
