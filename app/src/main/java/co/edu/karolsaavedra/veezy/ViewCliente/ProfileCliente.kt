@@ -175,9 +175,11 @@ fun ProfileClienteScreen( onClickCerrarSesion: () -> Unit = {}) {
                         ),
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally)
                             .height(48.dp)
-                            .shadow(4.dp, RoundedCornerShape(50.dp))
+                            .shadow(4.dp, RoundedCornerShape(50.dp),
+
+                                )
                     ) {
                         Text(
                             text = "Cerrar sesión",
