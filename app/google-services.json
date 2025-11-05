@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "546033248065",
+    "project_id": "veezy-5fca7",
+    "storage_bucket": "veezy-5fca7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546033248065:android:1a83041ae4950c76c8e3c0",
+        "android_client_info": {
+          "package_name": "co.edu.karolsaavedra.veezy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrr1UUWC0Tcvb5eZbw7kqbQIa9_SZisS8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
