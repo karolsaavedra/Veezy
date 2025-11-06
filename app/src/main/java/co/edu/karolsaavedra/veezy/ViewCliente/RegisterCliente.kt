@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewCliente
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,16 +46,27 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import co.edu.karolsaavedra.veezy.R
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.karolsaavedra.veezy.validateConfirmPassword
+import co.edu.karolsaavedra.veezy.validateEmail
+import co.edu.karolsaavedra.veezy.validateLastName
+import co.edu.karolsaavedra.veezy.validateName
+import co.edu.karolsaavedra.veezy.validatePassword
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.auth
 
 
 @Preview(showBackground = true)
@@ -62,19 +74,22 @@ import androidx.compose.ui.unit.sp
 
 fun RegisterCliente(
     onSuccesfuRegisterCliente: () -> Unit = {},
-    onClickRegisterCliente: () -> Unit = {},
     onClickBackRegister: () -> Unit = {}
 ){
     var inputname by remember { mutableStateOf("") }
     var inputapellido by remember { mutableStateOf("") }
     var inputEmailRegister by remember { mutableStateOf("") }
-    var inputpassword by remember { mutableStateOf("") }
-    var inputConfrimpassword by remember { mutableStateOf("") }
+    var inputpassworRegister by remember { mutableStateOf("") }
+    var inputConfirmpasswordRegister by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf("") }
     var apellidoError by remember { mutableStateOf("") }
     var EmailErrorRegister by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf("")}
-    var ConfrimpasswordError by remember { mutableStateOf("") }
+    var passwordErrorRegister by remember { mutableStateOf("")}
+    var ConfrimpasswordErrorRegister by remember { mutableStateOf("") }
+    var registerError by remember { mutableStateOf("") }
+    val activity = LocalView.current.context as Activity
+
+    val auth = Firebase.auth
 
     Scaffold (
         topBar = {
@@ -319,8 +334,8 @@ fun RegisterCliente(
 
             // Campo de Correo Electrónico
             OutlinedTextField(
-                value = inputpassword, // Valor vacío (sin estado)
-                onValueChange = {inputpassword = it},
+                value = inputpassworRegister, // Valor vacío (sin estado)
+                onValueChange = {inputpassworRegister = it},
                 label = { Text("Contraseña",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
@@ -332,8 +347,9 @@ fun RegisterCliente(
                         tint = Color(0xFFCB6363)
                     )
                 },
+                visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
+                    keyboardType = KeyboardType.Password,
                     capitalization = KeyboardCapitalization.None,
                     autoCorrect = false
                 ),
@@ -353,9 +369,9 @@ fun RegisterCliente(
                     unfocusedBorderColor = Color.Gray,
                 ),
                 supportingText = {
-                    if (passwordError.isNotEmpty()){
+                    if (passwordErrorRegister.isNotEmpty()){
                         Text(
-                            text = passwordError,
+                            text = passwordErrorRegister,
                             color = Color.Red
                         )
                     }
@@ -379,8 +395,8 @@ fun RegisterCliente(
             Spacer(modifier = Modifier.height(1.dp))
 
             OutlinedTextField(
-                value = inputConfrimpassword, // Valor vacío (sin estado)
-                onValueChange = {inputConfrimpassword = it},
+                value = inputConfirmpasswordRegister, // Valor vacío (sin estado)
+                onValueChange = {inputConfirmpasswordRegister = it},
                 label = { Text("Confirmar Contraseña",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
@@ -392,8 +408,9 @@ fun RegisterCliente(
                         tint = Color(0xFFCB6363) // Color gris
                     )
                 },
+                visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
+                    keyboardType = KeyboardType.Password,
                     capitalization = KeyboardCapitalization.None,
                     autoCorrect = false
                 ),
@@ -414,18 +431,52 @@ fun RegisterCliente(
                 ),
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (ConfrimpasswordError.isNotEmpty()){
+                    if (ConfrimpasswordErrorRegister.isNotEmpty()){
                         Text(
-                            text = ConfrimpasswordError,
+                            text = ConfrimpasswordErrorRegister,
                             color = Color.Red
                         )
                     }
                 }
 
             )
+            if (registerError.isNotEmpty()){
+                Text (registerError, color = Color.Red)
+            }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                onClick = { onSuccesfuRegisterCliente() },
+                onClick = {
+                    val isValidName = validateName(inputname).first
+                    val isValidLastName = validateName(inputapellido).first
+                    val isValidEmail = validateEmail(inputEmailRegister).first
+                    val isValidPassword = validatePassword(inputpassworRegister).first
+                    val isValidConfirmPassword = validateConfirmPassword(inputpassworRegister, inputConfirmpasswordRegister).first //crear y confirmar contraseña
+
+                    nameError = validateName(inputname).second
+                    apellidoError = validateLastName(inputapellido).second
+                    EmailErrorRegister= validateEmail(inputEmailRegister). second
+                    passwordErrorRegister = validatePassword(inputpassworRegister).second
+                    ConfrimpasswordErrorRegister = validateConfirmPassword(inputpassworRegister,inputConfirmpasswordRegister).second
+
+                    if (isValidName && isValidLastName && isValidEmail && isValidPassword && isValidConfirmPassword){
+                        auth.createUserWithEmailAndPassword(inputEmailRegister, inputpassworRegister)
+                            .addOnCompleteListener(activity) { task->
+                                if (task.isSuccessful){
+                                    onSuccesfuRegisterCliente()
+                                }else{
+                                    registerError = when(task.isSuccessful){
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo invalido"
+                                        is FirebaseAuthUserCollisionException -> "Correo ya registrado"
+                                        else -> "Error al registrarse"
+                                    }
+                                }
+                            }
+
+                    }else{
+                        registerError = "Hubo un error en el registro"
+                    }
+
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF863939)
                 ),

@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -169,6 +170,7 @@ fun LoginRestauranteScreen(
                         tint = Color(0xFFCB6363) // Color gris
                     )
                 },
+
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     capitalization = KeyboardCapitalization.None,
@@ -297,8 +299,9 @@ fun LoginRestauranteScreen(
                         tint = Color(0xFFCB6363)
                     )
                 },
+                visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
+                    keyboardType = KeyboardType.Password,
                     capitalization = KeyboardCapitalization.None,
                     autoCorrect = false
                 ),

@@ -12,6 +12,8 @@ import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
 import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.ClinetsWaitingScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
+import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
+import co.edu.karolsaavedra.veezy.menu.MenuScreen
 
 @Composable
 fun NavigationApp() {
@@ -32,7 +34,7 @@ fun NavigationApp() {
         //  Registro cliente
         composable("registerCliente") {
             RegisterCliente(
-                onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") },
+                onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") {popUpTo(0) } },
                 onClickBackRegister = { myNavController.popBackStack() }
             )
         }
@@ -48,7 +50,7 @@ fun NavigationApp() {
         //  Login Cliente
         composable("loginCliente") {
             LoginClienteScreen(
-                onSuccesfuloginCliente = { myNavController.navigate("mainCliente") },
+                onSuccesfuloginCliente = { myNavController.navigate("menuCliente") },
                 onClickBackLoginCliente = { myNavController.popBackStack() }
             )
         }
@@ -56,7 +58,7 @@ fun NavigationApp() {
         //  Login Restaurante
         composable("loginRestaurante") {
             LoginRestauranteScreen(
-                onSuccesfuloginRestaurante = { myNavController.navigate("firstScreenRestaurant") },
+                onSuccesfuloginRestaurante = { myNavController.navigate("firstScreenRestaurant"){popUpTo("loginRestaurante") {inclusive = true} }},
                 onClickBackloginRestaurante = { myNavController.popBackStack() }
             )
         }
@@ -64,7 +66,7 @@ fun NavigationApp() {
         //  Perfil Cliente
         composable("profileCliente") {
             ProfileClienteScreen(
-                onClickCerrarSesion = { myNavController.popBackStack() }
+                onClickLogout = { myNavController.popBackStack() }
             )
         }
 
@@ -74,5 +76,11 @@ fun NavigationApp() {
                 onClickBackConfig = { myNavController.popBackStack() }
             )
         }
+
+        composable("menuCliente") {
+            MenuScreen()
+        }
+
+
     }
 }

@@ -23,8 +23,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -34,12 +39,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 @Preview(showBackground = true)
 @Composable
 
-fun ProfileClienteScreen( onClickCerrarSesion: () -> Unit = {}) {
+fun ProfileClienteScreen( onClickLogout:  () -> Unit = {}) {
 
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+
+    val auth = Firebase.auth
+    val user = auth.currentUser
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -160,16 +173,16 @@ fun ProfileClienteScreen( onClickCerrarSesion: () -> Unit = {}) {
 
                 // 🔹 INFORMACIÓN DEL USUARIO
                 Column(modifier = Modifier.padding(horizontal = 30.dp)) {
-                    InfoItem(label = "Nombre", value = "Karol")
-                    InfoItem(label = "Apellido", value = "Saavedra")
-                    InfoItem(label = "Correo", value = "KSaavedra@gmail.com")
-                    InfoItem(label = "Número", value = "318 555-5555")
+                    OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") })
+                    OutlinedTextField(value = apellido, onValueChange = { apellido = it }, label = { Text("Apellido") })
+                    OutlinedTextField(value = correo, onValueChange = { correo = it }, label = { Text("Correo") })
 
                     Spacer(modifier = Modifier.height(28.dp))
 
                     // 🔹 Botón "Cerrar sesión"
                     Button(
-                        onClick = { /* Acción cerrar sesión */ },
+                        onClick = { auth.signOut()
+                            onClickLogout() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD99C00)
                         ),

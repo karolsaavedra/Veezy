@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewCliente
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,17 +46,26 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.karolsaavedra.veezy.R
+import co.edu.karolsaavedra.veezy.validateEmail
+import co.edu.karolsaavedra.veezy.validatePassword
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.auth
 
 @Preview(showBackground = true)
 @Composable
@@ -65,15 +75,21 @@ fun LoginClienteScreen(
     onClickBackLoginCliente: () -> Unit = {}
 
 ) {
+    //Estados
     var inputEmail by remember { mutableStateOf("") }
-    var inputPassword by remember { mutableStateOf("") }
-    var loginError by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf("")}
+    var inputPasswordCliente by remember { mutableStateOf("") }
+    var loginErrorCliente by remember { mutableStateOf("") }
+    var emailErrorCliente by remember { mutableStateOf("") }
+    var passwordErrorlogincliente by remember { mutableStateOf("")}
+
+    val activity = LocalView.current.context as Activity
+
+    val auth = Firebase.auth
+
 
     Scaffold (
         topBar = {
-            // 🔹 Flecha de retroceso en la parte superior izquierda
+            //  Flecha de retroceso en la parte superior izquierda
             IconButton(
                 onClick = { onClickBackLoginCliente() },
                 modifier = Modifier.padding(start = 8.dp, top = 8.dp)
@@ -128,9 +144,9 @@ fun LoginClienteScreen(
                 color = Color(0xFF641717),
                 style = TextStyle(
                     shadow = Shadow(
-                        color = Color(0x80000000), // 🔹 Negro semitransparente
-                        offset = Offset(0f, 6f),   // 🔹 6 píxeles hacia abajo
-                        blurRadius = 8f            // 🔹 Difuminado (ajustable)
+                        color = Color(0x80000000), //  Negro semitransparente
+                        offset = Offset(0f, 6f),
+                        blurRadius = 8f            //  Difuminado (ajustable)
                     )
                 )
             )
@@ -185,13 +201,12 @@ fun LoginClienteScreen(
                     // Color del borde cuando no está seleccionado
                     unfocusedBorderColor = Color.Gray,
                 ),
-                modifier = Modifier
-                    .width(300.dp), //modificar el ancho del campo
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), //modificar el ancho del campo
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (emailError.isNotEmpty()){
+                    if (emailErrorCliente.isNotEmpty()){
                         Text(
-                            text = emailError,
+                            text = emailErrorCliente,
                             color = Color.Red
                         )
                     }
@@ -216,8 +231,8 @@ fun LoginClienteScreen(
 
             // Campo de Correo Electrónico
             OutlinedTextField(
-                value = inputEmail, // Valor vacío (sin estado)
-                onValueChange = {inputEmail = it},
+                value = inputPasswordCliente, // Valor vacío (sin estado)
+                onValueChange = {inputPasswordCliente = it},
                 label = { Text("Contraseña",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
@@ -229,8 +244,9 @@ fun LoginClienteScreen(
                         tint = Color(0xFFCB6363)
                     )
                 },
+                visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
+                    keyboardType = KeyboardType.Password,
                     capitalization = KeyboardCapitalization.None,
                     autoCorrect = false
                 ),
@@ -249,22 +265,64 @@ fun LoginClienteScreen(
                     // Color del borde cuando no está seleccionado
                     unfocusedBorderColor = Color.Gray,
                 ),
-                modifier = Modifier
-                    .width(300.dp), //modificar el ancho del campo
+
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), //modificar el ancho del campo
+
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (emailError.isNotEmpty()){
+                    if (passwordErrorlogincliente.isNotEmpty()){
                         Text(
-                            text = emailError,
-                            color = Color.Red
+                            text = passwordErrorlogincliente,
+                            color = Color.Red,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+
                         )
                     }
                 }
 
             )
             Spacer(modifier = Modifier.height(32.dp))
+
+            if (loginErrorCliente.isNotEmpty()){
+                Text(
+                    loginErrorCliente,
+                    color = Color.Red,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+            }
+
             Button(
-                onClick = { onClickloginCliente() },
+                onClick = {
+                    //TODA LA PARTE DE VALIDACIONES SE CONECTA CON VALIDATIONS.KT
+                    //agregar la validación de datos, y que pueda ingresar correctamente
+                    val isValidEmail: Boolean = validateEmail(inputEmail).first //.first devuelve el valor booleano, si necesitaramos el string se colocaría .second
+                    val isValidPassword = validatePassword(inputPasswordCliente).first
+
+                    //variables por si ocurre algún error al ingresar los datos
+                    emailErrorCliente = validateEmail(inputEmail).second //.second va a devolver el String
+                    passwordErrorlogincliente = validatePassword(inputPasswordCliente).second //.second va a devolver el String
+
+                    if (isValidEmail && isValidPassword){ //validar tanto el email como la contraseña
+                        // colocar datos para poder iniciar sesión
+                        auth.signInWithEmailAndPassword(inputEmail, inputPasswordCliente)
+                            .addOnCompleteListener (activity){ task ->
+                                if (task.isSuccessful){
+                                    onSuccesfuloginCliente()
+                                }else{
+                                    loginErrorCliente= when(task.exception){ //tipo de advertencias  de error que van a aparecer si la contraseña o correo están mal, o si no existe el correo
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
+                                        is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
+                                        else -> "Error al iniciar sesión. Intenta de nuevo"
+                                    }
+
+                                }
+                            }
+
+                }
+
+
+
+                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF863939)
                 ),
@@ -285,7 +343,7 @@ fun LoginClienteScreen(
                         .fillMaxWidth()
                         .padding(end = 0.dp) // sin margen derecho extra
                 ) {
-                    // 🔹 Texto "Iniciar sesión"
+                    //  Texto "Iniciar sesión"
                     Text(
                         text = "Iniciar sesión",
                         color = Color(0xFFFFFFFF),
