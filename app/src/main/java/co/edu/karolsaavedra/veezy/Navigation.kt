@@ -12,6 +12,7 @@ import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
 import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.ClinetsWaitingScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
+import co.edu.karolsaavedra.veezy.ViewRestaurante.RegisterRestaurante
 import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
 import co.edu.karolsaavedra.veezy.menu.MenuScreen
 
@@ -27,6 +28,7 @@ fun NavigationApp() {
         composable("startApp") {
             StartScreen(
                 onClickRegisterCliente = { myNavController.navigate("registerCliente") },
+                onClickRegisterRestaurante = { myNavController.navigate("registerRestaurante") },
                 onClickStartapp = { myNavController.navigate("chooseRole") }
             )
         }
@@ -80,6 +82,15 @@ fun NavigationApp() {
         composable("menuCliente") {
             MenuScreen()
         }
+        composable("registerRestaurante") {
+            RegisterRestaurante(
+                onSuccesfuRegisterCliente = { myNavController.navigate("loginRestaurante") {popUpTo(0) } },
+                onClickBackRegisterRestaurante = { myNavController.popBackStack() }
+            )
+        }
+
+
+
 
 
     }

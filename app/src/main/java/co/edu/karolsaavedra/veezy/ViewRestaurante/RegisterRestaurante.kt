@@ -1,4 +1,6 @@
-package co.edu.karolsaavedra.veezy.ViewCliente
+package co.edu.karolsaavedra.veezy.ViewRestaurante
+
+
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -72,30 +75,31 @@ import com.google.firebase.auth.auth
 @Preview(showBackground = true)
 @Composable
 
-fun RegisterCliente(
+fun RegisterRestaurante(
     onSuccesfuRegisterCliente: () -> Unit = {},
-    onClickBackRegister: () -> Unit = {}
+    onClickBackRegisterRestaurante: () -> Unit = {},
+    onClickRegisterRestaurante: () -> Unit = {}
 ){
-    var inputname by remember { mutableStateOf("") }
-    var inputapellido by remember { mutableStateOf("") }
-    var inputEmailRegister by remember { mutableStateOf("") }
-    var inputpassworRegister by remember { mutableStateOf("") }
-    var inputConfirmpasswordRegister by remember { mutableStateOf("") }
-    var nameError by remember { mutableStateOf("") }
-    var apellidoError by remember { mutableStateOf("") }
-    var EmailErrorRegister by remember { mutableStateOf("") }
-    var passwordErrorRegister by remember { mutableStateOf("")}
-    var ConfrimpasswordErrorRegister by remember { mutableStateOf("") }
-    var registerError by remember { mutableStateOf("") }
+    var inputnamerestaurante by remember { mutableStateOf("") }
+    var inputDirecciónRestaurante by remember { mutableStateOf("") }
+    var inputEmailRestauranteRegister by remember { mutableStateOf("") }
+    var inputpassworRestauranteRegister by remember { mutableStateOf("") }
+    var inputConfirmRestaurantepasswordRegister by remember { mutableStateOf("") }
+    var NameRestauranteError by remember { mutableStateOf("") }
+    var DireccionError by remember { mutableStateOf("") }
+    var EmailRestauranteErrorRegister by remember { mutableStateOf("") }
+    var passwordRestauranteErrorRegister by remember { mutableStateOf("")}
+    var ConfrimpasswordRestauranteErrorRegister by remember { mutableStateOf("") }
+    var registerRestauranteError by remember { mutableStateOf("") }
     val activity = LocalView.current.context as Activity
 
     val auth = Firebase.auth
 
     Scaffold (
         topBar = {
-            // 🔹 Flecha de retroceso en la parte superior izquierda
+            //  Flecha de retroceso en la parte superior izquierda
             IconButton(
-                onClick = { onClickBackRegister() },
+                onClick = { onClickBackRegisterRestaurante() },
                 modifier = Modifier.padding(start = 8.dp, top = 8.dp)
             ) {
                 Icon(
@@ -114,7 +118,7 @@ fun RegisterCliente(
                 .verticalScroll(rememberScrollState())//hacer que el teclado no tape los campos que se van a llenar
                 .background(Color(0xFFFAF0F0))
                 .padding(paddingValues),
-              verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -134,7 +138,7 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(28.dp))
             Text(
-                text = "Nombre",
+                text = "Dirección",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp),
@@ -150,15 +154,15 @@ fun RegisterCliente(
 
             // Campo de Nombre
             OutlinedTextField(
-                value = inputname, // Valor vacío (sin estado)
-                onValueChange = {inputname = it},
-                label = { Text("Nombre",
+                value = inputDirecciónRestaurante, // Valor vacío (sin estado)
+                onValueChange = {inputDirecciónRestaurante = it},
+                label = { Text("Dirección",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
                 ) },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        imageVector = Icons.Default.LocationOn,
                         contentDescription = "Person",
                         tint = Color(0xFFCB6363) // Color gris
                     )
@@ -185,9 +189,9 @@ fun RegisterCliente(
                 ),
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (nameError.isNotEmpty()){
+                    if (DireccionError.isNotEmpty()){
                         Text(
-                            text = nameError,
+                            text = DireccionError,
                             color = Color.Red
                         )
                     }
@@ -196,7 +200,7 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "Apellido",
+                text = "Nombre restaurante",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp),
@@ -210,18 +214,18 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(1.dp))
 
-            // Campo de Correo Electrónico
+            // Campo de Nombre restaurante
             OutlinedTextField(
-                value = inputapellido, // Valor vacío (sin estado)
-                onValueChange = {inputapellido = it},
-                label = { Text("Apellido",
+                value = inputnamerestaurante, // Valor vacío (sin estado)
+                onValueChange = {inputnamerestaurante = it},
+                label = { Text("Nombre restaurante",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
                 ) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Apellido",
+                        contentDescription = "Nombre restaurante",
                         tint = Color(0xFFCB6363)
                     )
                 },
@@ -246,9 +250,9 @@ fun RegisterCliente(
                     unfocusedBorderColor = Color.Gray,
                 ),
                 supportingText = {
-                    if (apellidoError.isNotEmpty()){
+                    if (NameRestauranteError.isNotEmpty()){
                         Text(
-                            text = apellidoError,
+                            text = NameRestauranteError,
                             color = Color.Red
                         )
                     }
@@ -257,7 +261,7 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "Correo",
+                text = "Correo especial",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp),
@@ -273,16 +277,16 @@ fun RegisterCliente(
 
             // Campo de Correo Electrónico
             OutlinedTextField(
-                value = inputEmailRegister, // Valor vacío (sin estado)
-                onValueChange = {inputEmailRegister = it},
-                label = { Text("Correo",
+                value = inputEmailRestauranteRegister, // Valor vacío (sin estado)
+                onValueChange = {inputEmailRestauranteRegister = it},
+                label = { Text("Correo especial",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
                 ) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = "Correo",
+                        contentDescription = "Correo especial",
                         tint = Color(0xFFCB6363)
                     )
                 },
@@ -307,9 +311,9 @@ fun RegisterCliente(
                     unfocusedBorderColor = Color.Gray,
                 ),
                 supportingText = {
-                    if (EmailErrorRegister.isNotEmpty()){
+                    if (EmailRestauranteErrorRegister.isNotEmpty()){
                         Text(
-                            text = EmailErrorRegister,
+                            text = EmailRestauranteErrorRegister,
                             color = Color.Red
                         )
                     }
@@ -334,8 +338,8 @@ fun RegisterCliente(
 
             // Campo de Correo Electrónico
             OutlinedTextField(
-                value = inputpassworRegister, // Valor vacío (sin estado)
-                onValueChange = {inputpassworRegister = it},
+                value = inputpassworRestauranteRegister, // Valor vacío (sin estado)
+                onValueChange = {inputpassworRestauranteRegister = it},
                 label = { Text("Contraseña",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
@@ -369,9 +373,9 @@ fun RegisterCliente(
                     unfocusedBorderColor = Color.Gray,
                 ),
                 supportingText = {
-                    if (passwordErrorRegister.isNotEmpty()){
+                    if (passwordRestauranteErrorRegister.isNotEmpty()){
                         Text(
-                            text = passwordErrorRegister,
+                            text = passwordRestauranteErrorRegister,
                             color = Color.Red
                         )
                     }
@@ -395,8 +399,8 @@ fun RegisterCliente(
             Spacer(modifier = Modifier.height(1.dp))
 
             OutlinedTextField(
-                value = inputConfirmpasswordRegister, // Valor vacío (sin estado)
-                onValueChange = {inputConfirmpasswordRegister = it},
+                value = inputConfirmRestaurantepasswordRegister, // Valor vacío (sin estado)
+                onValueChange = {inputConfirmRestaurantepasswordRegister = it},
                 label = { Text("Confirmar Contraseña",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
@@ -431,40 +435,40 @@ fun RegisterCliente(
                 ),
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (ConfrimpasswordErrorRegister.isNotEmpty()){
+                    if (ConfrimpasswordRestauranteErrorRegister.isNotEmpty()){
                         Text(
-                            text = ConfrimpasswordErrorRegister,
+                            text = ConfrimpasswordRestauranteErrorRegister,
                             color = Color.Red
                         )
                     }
                 }
 
             )
-            if (registerError.isNotEmpty()){
-                Text (registerError, color = Color.Red)
+            if (registerRestauranteError.isNotEmpty()){
+                Text (registerRestauranteError, color = Color.Red)
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
-                    val isValidName = validateName(inputname).first
-                    val isValidLastName = validateLastName(inputapellido).first
-                    val isValidEmail = validateEmail(inputEmailRegister).first
-                    val isValidPassword = validatePassword(inputpassworRegister).first
-                    val isValidConfirmPassword = validateConfirmPassword(inputpassworRegister, inputConfirmpasswordRegister).first //crear y confirmar contraseña
+                    val isValidNameRestaurante = validateName(inputnamerestaurante).first
+                    val isvalidateDireccion = validateName(inputDirecciónRestaurante).first
+                    val isvalidateEmailRestaurante = validateEmail(inputEmailRestauranteRegister).first
+                    val isvalidatePasswordRestaurante = validatePassword(inputpassworRestauranteRegister).first
+                    val isvalidateConfirmPasswordRestaurante = validateConfirmPassword(inputpassworRestauranteRegister, inputConfirmRestaurantepasswordRegister).first //crear y confirmar contraseña
 
-                    nameError = validateName(inputname).second
-                    apellidoError = validateLastName(inputapellido).second
-                    EmailErrorRegister= validateEmail(inputEmailRegister). second
-                    passwordErrorRegister = validatePassword(inputpassworRegister).second
-                    ConfrimpasswordErrorRegister = validateConfirmPassword(inputpassworRegister,inputConfirmpasswordRegister).second
+                    NameRestauranteError = validateName(inputnamerestaurante).second
+                    DireccionError = validateLastName(inputDirecciónRestaurante).second
+                    EmailRestauranteErrorRegister= validateEmail(inputEmailRestauranteRegister). second
+                    passwordRestauranteErrorRegister = validatePassword(inputpassworRestauranteRegister).second
+                    ConfrimpasswordRestauranteErrorRegister = validateConfirmPassword(inputpassworRestauranteRegister,inputConfirmRestaurantepasswordRegister).second
 
-                    if (isValidName && isValidLastName && isValidEmail && isValidPassword && isValidConfirmPassword){
-                        auth.createUserWithEmailAndPassword(inputEmailRegister, inputpassworRegister)
+                    if (isvalidateEmailRestaurante && isvalidateDireccion && isValidNameRestaurante && isvalidatePasswordRestaurante && isvalidateConfirmPasswordRestaurante){
+                        auth.createUserWithEmailAndPassword(inputnamerestaurante, inputpassworRestauranteRegister)
                             .addOnCompleteListener(activity) { task->
                                 if (task.isSuccessful){
                                     onSuccesfuRegisterCliente()
                                 }else{
-                                    registerError = when(task.isSuccessful){
+                                    registerRestauranteError = when(task.isSuccessful){
                                         is FirebaseAuthInvalidCredentialsException -> "Correo invalido"
                                         is FirebaseAuthUserCollisionException -> "Correo ya registrado"
                                         else -> "Error al registrarse"
@@ -473,7 +477,7 @@ fun RegisterCliente(
                             }
 
                     }else{
-                        registerError = "Hubo un error en el registro"
+                        registerRestauranteError = "Hubo un error en el registro"
                     }
 
                 },
@@ -510,7 +514,7 @@ fun RegisterCliente(
                     Box(
                         modifier = Modifier
                             .size(30.dp)
-                            .offset(x = 12.dp) // 🔸 Desplaza el círculo hacia afuera del borde
+                            .offset(x = 12.dp) // Desplaza el círculo hacia afuera del borde
                             .background(
                                 color = Color(0xFFFFFFFF),
                                 shape = CircleShape
@@ -524,8 +528,8 @@ fun RegisterCliente(
                             modifier = Modifier.size(20.dp)
                         )
                     }
-        }
-    }
+                }
             }
         }
     }
+}

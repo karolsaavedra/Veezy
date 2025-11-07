@@ -42,7 +42,8 @@ import co.edu.karolsaavedra.veezy.R
 fun StartScreen(
     onClickStartapp: () -> Unit = {},
     onSuccesfulstart: () -> Unit = {},
-    onClickRegisterCliente: () -> Unit = {}
+    onClickRegisterCliente: () -> Unit = {},
+    onClickRegisterRestaurante: () -> Unit = {}
 
 
 
@@ -177,7 +178,14 @@ fun StartScreen(
                 }
                 TextButton(onClick = onClickRegisterCliente) {
                     Text(
-                        text = "¿No tienes una cuenta? Regístrate",
+                        text = "¿No tienes una cuenta de cliente? Regístrate",
+                        color = Color(0xFFEFB1B1)
+                    )
+                }
+
+                TextButton(onClick = onClickRegisterRestaurante) {
+                    Text(
+                        text = "¿No tienes una cuenta de restaurante? Regístrate",
                         color = Color(0xFFEFB1B1)
                     )
                 }

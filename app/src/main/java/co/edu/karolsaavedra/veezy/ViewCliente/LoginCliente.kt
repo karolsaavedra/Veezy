@@ -201,8 +201,9 @@ fun LoginClienteScreen(
                     // Color del borde cuando no está seleccionado
                     unfocusedBorderColor = Color.Gray,
                 ),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), //modificar el ancho del campo
-                //mostrar mensaje de error por si algún dato quedó mal digitado
+                modifier = Modifier
+                    .width(300.dp), //modificar el ancho del campo
+                //mostrar mensaje de error por si algún dato quedómaldigitado
                 supportingText = {
                     if (emailErrorCliente.isNotEmpty()){
                         Text(
@@ -266,9 +267,9 @@ fun LoginClienteScreen(
                     unfocusedBorderColor = Color.Gray,
                 ),
 
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), //modificar el ancho del campo
-
-                //mostrar mensaje de error por si algún dato quedó mal digitado
+                modifier = Modifier
+                    .width(300.dp), //modificar el ancho del campo
+                //mostrar mensaje de error por si algún dato quedómaldigitado
                 supportingText = {
                     if (passwordErrorlogincliente.isNotEmpty()){
                         Text(
