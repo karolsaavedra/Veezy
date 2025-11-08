@@ -68,4 +68,8 @@ dependencies {
     implementation(libs.firebase.bom)
     //auth
     implementation(libs.firebase.auth)
+
+    // Android Maps Compose composables for the Maps SDK for Android
+    //implementation(libs.maps.compose)
+    implementation("com.google.maps.android:maps-compose:4.4.1")
 }

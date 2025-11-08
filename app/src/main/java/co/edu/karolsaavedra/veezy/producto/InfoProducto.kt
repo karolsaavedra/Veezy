@@ -1,5 +1,7 @@
 package co.edu.karolsaavedra.veezy.producto
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,14 +18,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.menu.BurgerInfo
 import co.edu.karolsaavedra.veezy.menu.burgerList
+import com.google.android.gms.maps.model.LatLng
 
 @Preview(showBackground = true)
 @Composable
@@ -31,6 +36,9 @@ fun InfoProducto() {
 
 
     var isFavorite by remember { mutableStateOf(false) }
+    var ubicacionRestaurante = LatLng(7.108988715896521, -73.10634914047473)
+    val context = LocalContext.current
+
 
     Box(
         modifier = Modifier
@@ -119,7 +127,13 @@ fun InfoProducto() {
                 modifier = Modifier.size(55.dp),
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFFFCC00)),
-                onClick = { " " }
+                onClick = {
+                    var url= Uri.parse("google.navigation:q=${ubicacionRestaurante.latitude},${ubicacionRestaurante.longitude}&mode=d")
+                    var intent = Intent(Intent.ACTION_VIEW, url)
+                    intent.setPackage("com.google.android.apps.maps")
+                    context.startActivity(intent)
+
+                }
             ) {
                 Box(
                     contentAlignment = Alignment.Center,

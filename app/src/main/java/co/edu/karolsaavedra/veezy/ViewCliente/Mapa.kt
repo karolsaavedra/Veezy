@@ -22,6 +22,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 import co.edu.karolsaavedra.veezy.R
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 
 @Composable
 fun MapaScreen(navController: NavController) {
@@ -116,17 +122,18 @@ fun MapaScreen(navController: NavController) {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Texto placeholder del mapa (puedes reemplazarlo con un mapa real)
-                    Text(
-                        text = "Mapa de los\nrestaurante",
-                        style = TextStyle(
-                            fontSize = 48.sp,
-                            fontFamily = FontFamily(Font(R.font.afacad)),
-                            fontWeight = FontWeight(400),
-                            color = Color(0xFFCB6363).copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.offset(x = 0.dp, y = 0.dp)
-                    )
+                    //  mapa (puedes reemplazarlo con un mapa real)
+                    var ubicacionBga = LatLng(7.133, -73.133)
+                    var CameraPositionState =  rememberCameraPositionState{
+                        position = CameraPosition.fromLatLngZoom(ubicacionBga, 10f)
+                    }
+                    GoogleMap (modifier = Modifier
+                        .fillMaxSize(),
+                        cameraPositionState = CameraPositionState){
+                        Marker(state = rememberMarkerState(position = ubicacionBga),
+                            title = "Burger Master Colombia",
+                            snippet = "Burger Master Colombia")
+                    }
                 }
             }
 
