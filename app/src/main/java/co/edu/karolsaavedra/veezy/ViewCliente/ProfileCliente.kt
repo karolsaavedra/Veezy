@@ -195,8 +195,10 @@ fun ProfileClienteScreen(
                     Button(
                         onClick = {
                             FirebaseAuth.getInstance().signOut() // Cierra la sesión de Firebase
-                            onClickLogout()
-                        },
+                            navController.navigate("loginCliente") {  // nombre  de la ruta en el NavHost
+                                popUpTo("menuScreen") { inclusive = true } // elimina pantallas previas
+                                }
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD99C00)
                         ),
@@ -221,7 +223,8 @@ fun ProfileClienteScreen(
             // 🔹 Barra inferior
             BottomBar(
                 modifier = Modifier.align(Alignment.BottomCenter),
-                navController = navController, isBackgroundWine = false
+                navController = navController,
+                isBackgroundWine = false
             )
         }
     }

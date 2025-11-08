@@ -74,37 +74,6 @@ fun BottomBar(
 
 
 
-@Composable
-fun BottomBar3(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .width(412.dp)
-            .height(56.dp)
-            .background(
-                color = Color(0xFFFFFFFF),
-                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
-            ),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val icons: List<Int> = listOf(
-            R.drawable.profile___iconly_pro,
-            R.drawable.location___iconly_pro,//cambiar por scan
-            R.drawable.home___iconly_pro,
-            R.drawable.chat_2___iconly_pro,
-            R.drawable.wallet___iconly_pro
-        )
-        icons.forEach { icon ->
-            Image(
-                painter = painterResource(id = icon),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(Color(0xFFCB6363))
-            )
-        }
-    }
-}
 
 @Composable
 fun BottomBarRestaurante(
@@ -130,7 +99,7 @@ fun BottomBarRestaurante(
         val items = listOf(
             Pair(R.drawable.profile___iconly_pro, "profileCliente"),
             Pair(R.drawable.location___iconly_pro, "mapaCliente"),
-            Pair(R.drawable.home___iconly_pro, "menuRestaurante1"),
+            Pair(R.drawable.home___iconly_pro, "menuRestauranteScreen"),
             Pair(R.drawable.chat_2___iconly_pro, "chatCliente"),
             Pair(R.drawable.wallet___iconly_pro, "walletCliente")
         )

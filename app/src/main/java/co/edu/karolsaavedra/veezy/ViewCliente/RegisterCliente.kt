@@ -508,7 +508,7 @@ fun RegisterCliente(
                     Box(
                         modifier = Modifier
                             .size(30.dp)
-                            .offset(x = 12.dp) // 🔸 Desplaza el círculo hacia afuera del borde
+                            .offset(x = 12.dp) //  Desplaza el círculo hacia afuera del borde
                             .background(
                                 color = Color(0xFFFFFFFF),
                                 shape = CircleShape
