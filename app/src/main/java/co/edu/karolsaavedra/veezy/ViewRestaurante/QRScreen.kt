@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewRestaurante
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,9 +26,20 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 
 @Composable
-fun QRScreen(navController: NavController) { // Se agrega el navController
+fun QRScreen(navController: NavController=rememberNavController()) { // Se agrega el navController
+    var scanResult by remember { mutableStateOf<String?>(null) }
+    var scanLauncher= rememberLauncherForActivityResult(
+        contract = ScanContract(),
+        onResult = { result ->
+            scanResult = result.contents
+        }
+    )
+
+
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
     ) { paddingValues ->
@@ -119,7 +135,8 @@ fun QRScreen(navController: NavController) { // Se agrega el navController
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Button(
-                    onClick = { /* acción al confirmar */ },
+                    onClick = {
+                        scanLauncher.launch(ScanOptions()) },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)),
                     modifier = Modifier
                         .width(160.dp)

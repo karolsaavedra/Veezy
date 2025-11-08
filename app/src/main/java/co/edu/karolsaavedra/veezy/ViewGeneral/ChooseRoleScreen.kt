@@ -181,7 +181,7 @@ fun ChooseRoleScreen(
                 }
                 Spacer(modifier = Modifier.height(50.dp))
                 Button(
-                    onClick = { onClickCliente() },
+                    onClick = { onClickRestaurante() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF863939)
                     ),

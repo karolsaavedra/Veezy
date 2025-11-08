@@ -1,6 +1,7 @@
 package co.edu.karolsaavedra.veezy.ViewRestaurante
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -308,6 +309,7 @@ fun LoginRestauranteScreen(
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     println(" Login exitoso del restaurante")
+                                    Log.i("Login", "Login exitoso del restaurante")
                                     onSuccesfuloginRestaurante()
                                 } else {
                                     println(" Login fallido: ${task.exception?.message}")

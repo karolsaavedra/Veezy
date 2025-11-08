@@ -72,4 +72,11 @@ dependencies {
     // Android Maps Compose composables for the Maps SDK for Android
     //implementation(libs.maps.compose)
     implementation("com.google.maps.android:maps-compose:4.4.1")
+
+    //Codigos QR
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    //Generar codigo QR
+    implementation("com.simonsickle:composed-barcodes:1.3.0")
+
+
 }

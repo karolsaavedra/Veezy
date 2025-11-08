@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewCliente
 
+import androidx.annotation.Size
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,9 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.karolsaavedra.veezy.R
+import com.simonsickle.compose.barcodes.Barcode
+import com.simonsickle.compose.barcodes.BarcodeType
 
 @Composable
 fun TurnoScreen() {
+    val cadena="Edson Julian"
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -196,16 +200,11 @@ fun TurnoScreen() {
                     // ===== CÓDIGO QR =====
                     Box(
                         modifier = Modifier
-                            .size(110.dp)
+                            .size(200.dp)
                             .background(color = Color(0x96EBA3A3), shape = RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.qr_code___iconly_pro),
-                            contentDescription = "Código QR",
-                            modifier = Modifier.size(100.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Barcode(value = cadena, type = BarcodeType.QR_CODE, modifier = Modifier.size(200.dp))
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))

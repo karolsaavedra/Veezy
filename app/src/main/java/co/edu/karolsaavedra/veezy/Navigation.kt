@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,8 +41,12 @@ fun NavigationApp() {
         composable("startApp") {
             StartScreen(
                 onClickRegisterCliente = { myNavController.navigate("registerCliente") },
-                onClickRegisterRestaurante = { myNavController.navigate("registerRestaurante") },
-                onClickStartapp = { myNavController.navigate("chooseRole") }
+                onClickRegisterRestaurante = {
+                    Log.i("login", "registerRestaurante")
+                    myNavController.navigate("registerRestaurante") },
+                onClickStartapp = {
+                    Log.i("login", "chooseRole")
+                    myNavController.navigate("chooseRole") }
 
             )
         }
@@ -57,8 +62,13 @@ fun NavigationApp() {
         //  Elección de rol
         composable("chooseRole") {
             ChooseRoleScreen(
-                onClickCliente = { myNavController.navigate("loginCliente") },
-                onClickRestaurante = { myNavController.navigate("loginRestaurante") },
+                onClickCliente = {
+                    Log.i("login", "loginCliente")
+                    myNavController.navigate("loginCliente") },
+                onClickRestaurante = {
+                    Log.i("login", "loginRestaurante")
+
+                    myNavController.navigate("loginRestaurante") },
                 onClickBackChooseRole = { myNavController.popBackStack() }
             )
         }
@@ -79,6 +89,8 @@ fun NavigationApp() {
         composable("loginRestaurante") {
             LoginRestauranteScreen(
                 onSuccesfuloginRestaurante = {
+                    Log.i("login", "menuRestaurante")
+
                     myNavController.navigate("menuRestaurante") {popUpTo("loginRestaurante") { inclusive = true }}
                 },
                 onClickBackloginRestaurante = { myNavController.popBackStack() }
