@@ -68,7 +68,6 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
 
-
 @Preview(showBackground = true)
 @Composable
 
@@ -114,7 +113,7 @@ fun RegisterCliente(
                 .verticalScroll(rememberScrollState())//hacer que el teclado no tape los campos que se van a llenar
                 .background(Color(0xFFFAF0F0))
                 .padding(paddingValues),
-              verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -209,7 +208,6 @@ fun RegisterCliente(
                 )
             )
             Spacer(modifier = Modifier.height(1.dp))
-
             // Campo de Correo Electrónico
             OutlinedTextField(
                 value = inputapellido, // Valor vacío (sin estado)
@@ -271,7 +269,7 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(1.dp))
 
-            // Campo de Correo Electrónico
+// Campo de Correo Electrónico
             OutlinedTextField(
                 value = inputEmailRegister, // Valor vacío (sin estado)
                 onValueChange = {inputEmailRegister = it},
@@ -332,7 +330,7 @@ fun RegisterCliente(
             )
             Spacer(modifier = Modifier.height(1.dp))
 
-            // Campo de Correo Electrónico
+// Campo de Correo Electrónico
             OutlinedTextField(
                 value = inputpassworRegister, // Valor vacío (sin estado)
                 onValueChange = {inputpassworRegister = it},
@@ -524,8 +522,8 @@ fun RegisterCliente(
                             modifier = Modifier.size(20.dp)
                         )
                     }
-        }
-    }
+                }
             }
         }
     }
+}

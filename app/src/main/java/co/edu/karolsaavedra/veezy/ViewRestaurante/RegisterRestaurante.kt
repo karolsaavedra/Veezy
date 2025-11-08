@@ -62,10 +62,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.karolsaavedra.veezy.validateConfirmPassword
+import co.edu.karolsaavedra.veezy.validateConfirmPasswordRestaurante
+import co.edu.karolsaavedra.veezy.validateDireccion
 import co.edu.karolsaavedra.veezy.validateEmail
+import co.edu.karolsaavedra.veezy.validateEmailRestaurante
 import co.edu.karolsaavedra.veezy.validateLastName
 import co.edu.karolsaavedra.veezy.validateName
+import co.edu.karolsaavedra.veezy.validateNameRestaurante
 import co.edu.karolsaavedra.veezy.validatePassword
+import co.edu.karolsaavedra.veezy.validatePasswordRestaurante
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -78,7 +83,6 @@ import com.google.firebase.auth.auth
 fun RegisterRestaurante(
     onSuccesfuRegisterCliente: () -> Unit = {},
     onClickBackRegisterRestaurante: () -> Unit = {},
-    onClickRegisterRestaurante: () -> Unit = {}
 ){
     var inputnamerestaurante by remember { mutableStateOf("") }
     var inputDirecciónRestaurante by remember { mutableStateOf("") }
@@ -450,11 +454,11 @@ fun RegisterRestaurante(
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
-                    val isValidNameRestaurante = validateName(inputnamerestaurante).first
-                    val isvalidateDireccion = validateName(inputDirecciónRestaurante).first
-                    val isvalidateEmailRestaurante = validateEmail(inputEmailRestauranteRegister).first
-                    val isvalidatePasswordRestaurante = validatePassword(inputpassworRestauranteRegister).first
-                    val isvalidateConfirmPasswordRestaurante = validateConfirmPassword(inputpassworRestauranteRegister, inputConfirmRestaurantepasswordRegister).first //crear y confirmar contraseña
+                    val isValidNameRestaurante = validateNameRestaurante(inputnamerestaurante).first
+                    val isvalidateDireccion = validateDireccion(inputDirecciónRestaurante).first
+                    val isvalidateEmailRestaurante = validateEmailRestaurante(inputEmailRestauranteRegister).first
+                    val isvalidatePasswordRestaurante = validatePasswordRestaurante(inputpassworRestauranteRegister).first
+                    val isvalidateConfirmPasswordRestaurante = validateConfirmPasswordRestaurante(inputpassworRestauranteRegister, inputConfirmRestaurantepasswordRegister).first //crear y confirmar contraseña
 
                     NameRestauranteError = validateName(inputnamerestaurante).second
                     DireccionError = validateLastName(inputDirecciónRestaurante).second

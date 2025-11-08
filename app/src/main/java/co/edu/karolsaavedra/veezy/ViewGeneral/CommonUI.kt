@@ -72,37 +72,7 @@ fun BottomBar(
 
 
 
-@Composable
-fun BottomBar2(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .width(412.dp)
-            .height(56.dp)
-            .background(
-                color = Color(0xFFFFFFFF),
-                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
-            ),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val icons: List<Int> = listOf(
-            R.drawable.profile___iconly_pro,
-            R.drawable.location___iconly_pro,
-            R.drawable.home___iconly_pro,
-            R.drawable.chat_2___iconly_pro,
-            R.drawable.wallet___iconly_pro
-        )
-        icons.forEach { icon ->
-            Image(
-                painter = painterResource(id = icon),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(Color(0xFFCB6363))
-            )
-        }
-    }
-}
+
 
 @Composable
 fun BottomBar3(modifier: Modifier = Modifier) {
@@ -131,6 +101,54 @@ fun BottomBar3(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(24.dp),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(Color(0xFFCB6363))
+            )
+        }
+    }
+}
+
+@Composable
+fun BottomBarRestaurante(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    isBackgroundWine: Boolean = true // Indica si el fondo actual es vino tinto
+) {
+    // Colores dinámicos según el fondo
+    val barColor = if (isBackgroundWine) Color.White else Color(0xFF641717)
+    val iconColor = if (isBackgroundWine) Color(0xFF641717) else Color.White
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(
+                color = barColor,
+                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+            ),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val items = listOf(
+            Pair(R.drawable.profile___iconly_pro, "profileCliente"),
+            Pair(R.drawable.location___iconly_pro, "mapaCliente"),
+            Pair(R.drawable.home___iconly_pro, "menuRestaurante1"),
+            Pair(R.drawable.chat_2___iconly_pro, "chatCliente"),
+            Pair(R.drawable.wallet___iconly_pro, "walletCliente")
+        )
+
+        items.forEach { (icon, route) ->
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable {
+                        navController.navigate(route) {
+                            popUpTo("menuRestaurante") { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(iconColor) // Cambia el color de los íconos
             )
         }
     }

@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewRestaurante
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -59,6 +62,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.karolsaavedra.veezy.R
+import co.edu.karolsaavedra.veezy.validateEmail
+import co.edu.karolsaavedra.veezy.validateEmailRestaurante
+import co.edu.karolsaavedra.veezy.validatePassword
+import co.edu.karolsaavedra.veezy.validatePasswordRestaurante
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.auth
+
+
 
 @Preview(showBackground = true)
 @Composable
@@ -67,14 +80,16 @@ fun LoginRestauranteScreen(
     onClickloginRestaurante: () -> Unit = {},
     onClickBackloginRestaurante: () -> Unit = {}
 ) {
-    var inputNameRestaurant by remember { mutableStateOf("") }
-    var inputCodRestaurante by remember { mutableStateOf("") }
+    var inputEmailRestaurant by remember { mutableStateOf("") }
     var inputPasswordRestaurante by remember { mutableStateOf("") }
-    var loginError by remember { mutableStateOf("") }
-    var nameError by remember { mutableStateOf("") }
-    var codRestauranteError by remember { mutableStateOf("") }
+    var loginErrorRestaurante by remember { mutableStateOf("") }
+    var EmailRestError by remember { mutableStateOf("") }
     var passwordRestuaranteError by remember { mutableStateOf("")}
     val sombraIntensidad = 8f
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val auth = Firebase.auth
 
     Scaffold (
         topBar = {
@@ -133,15 +148,15 @@ fun LoginRestauranteScreen(
                 color = Color(0xFF641717),
                 style = TextStyle(
                     shadow = Shadow(
-                        color = Color(0x80000000), // 🔹 Negro semitransparente
-                        offset = Offset(0f, 6f),   // 🔹 6 píxeles hacia abajo
-                        blurRadius = 8f            // 🔹 Difuminado (ajustable)
+                        color = Color(0x80000000), //  Negro semitransparente
+                        offset = Offset(0f, 6f),   //  6 píxeles hacia abajo
+                        blurRadius = 8f            //  Difuminado (ajustable)
                     )
                 )
             )
             Spacer(modifier = Modifier.height(32.dp))
             Text(
-                text = "Nombre del Restaurante",
+                text = "Correo del Restaurante",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp),
@@ -157,9 +172,9 @@ fun LoginRestauranteScreen(
 
             // Campo de Correo Electrónico
             OutlinedTextField(
-                value = inputNameRestaurant, // Valor vacío (sin estado)
-                onValueChange = {inputNameRestaurant = it},
-                label = { Text("Nombre del restaurante",
+                value = inputEmailRestaurant, // Valor vacío (sin estado)
+                onValueChange = {inputEmailRestaurant = it},
+                label = { Text("Correo del resturante",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
                 ) },
@@ -195,79 +210,16 @@ fun LoginRestauranteScreen(
                     .width(300.dp), //modificar el ancho del campo
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (nameError.isNotEmpty()){
+                    if (EmailRestError.isNotEmpty()){
                         Text(
-                            text = nameError,
+                            text = EmailRestError,
                             color = Color.Red
                         )
                     }
                 }
 
             )
-            Spacer(modifier = Modifier.height(22.dp))
-            Text(
-                text = "Código",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 48.dp),
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 25.sp,
-                    fontFamily = FontFamily.SansSerif,
 
-                    color = Color(0xFF863939)
-                )
-            )
-            Spacer(modifier = Modifier.height(5.dp))
-
-            // Campo del código
-            OutlinedTextField(
-                value = inputPasswordRestaurante, // Valor vacío (sin estado)
-                onValueChange = {inputPasswordRestaurante = it},
-                label = { Text("Código",
-                    modifier = Modifier,
-                    color = Color(0xFFCB6363)
-                ) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "ContraseñaRestaurante",
-                        tint = Color(0xFFCB6363)
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrect = false
-                ),
-
-                shape = RoundedCornerShape(50.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    // Color del texto y el cursor cuando se está escribiendo
-                    focusedTextColor = Color(0xFF641717),
-                    focusedBorderColor = Color(0xFF641717),
-                    focusedLabelColor = Color(0xFF641717),
-                    // Color del cursor
-                    cursorColor = Color(0xFF641717),
-                    // Color del contenedor (fondo del campo)
-                    unfocusedContainerColor = Color(0xFFFFFFFF),
-                    focusedContainerColor = Color(0xFFFFFFFF),
-                    // Color del borde cuando no está seleccionado
-                    unfocusedBorderColor = Color.Gray,
-                ),
-                modifier = Modifier
-                    .width(300.dp), //modificar el ancho del campo
-                //mostrar mensaje de error por si algún dato quedó mal digitado
-                supportingText = {
-                    if (passwordRestuaranteError.isNotEmpty()){
-                        Text(
-                            text = passwordRestuaranteError,
-                            color = Color.Red
-                        )
-                    }
-                }
-
-            )
             Spacer(modifier = Modifier.height(22.dp))
             Text(
                 text = "Contraseña",
@@ -286,8 +238,8 @@ fun LoginRestauranteScreen(
 
             // Campo del código
             OutlinedTextField(
-                value = inputCodRestaurante, // Valor vacío (sin estado)
-                onValueChange = {inputCodRestaurante = it},
+                value = inputPasswordRestaurante, // Valor vacío (sin estado)
+                onValueChange = {inputPasswordRestaurante = it},
                 label = { Text("Contraseña",
                     modifier = Modifier,
                     color = Color(0xFFCB6363)
@@ -324,9 +276,9 @@ fun LoginRestauranteScreen(
                     .width(300.dp), //modificar el ancho del campo
                 //mostrar mensaje de error por si algún dato quedó mal digitado
                 supportingText = {
-                    if (codRestauranteError.isNotEmpty()){
+                    if (passwordRestuaranteError.isNotEmpty()){
                         Text(
-                            text = codRestauranteError,
+                            text = passwordRestuaranteError,
                             color = Color.Red
                         )
                     }
@@ -334,8 +286,46 @@ fun LoginRestauranteScreen(
 
             )
             Spacer(modifier = Modifier.height(32.dp))
+
+            if (loginErrorRestaurante.isNotEmpty()){
+                Text(
+                    loginErrorRestaurante,
+                    color = Color.Red,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+            }
             Button(
-                onClick = { onClickloginRestaurante() },
+                onClick = {
+                    //TODA LA PARTE DE VALIDACIONES SE CONECTA CON VALIDATIONS.KT
+                    //agregar la validación de datos, y que pueda ingresar correctamente
+                    val isvalidateEmailRestaurante: Boolean = validateEmailRestaurante(inputEmailRestaurant).first //.first devuelve el valor booleano, si necesitaramos el string se colocaría .second
+                    val isvalidatePasswordRestaurante = validatePasswordRestaurante(inputPasswordRestaurante).first
+
+                    //variables por si ocurre algún error al ingresar los datos
+                    EmailRestError = validateEmailRestaurante(inputEmailRestaurant).second //.second va a devolver el String
+                    passwordRestuaranteError = validatePasswordRestaurante(inputPasswordRestaurante).second //.second va a devolver el String
+
+                    if (isvalidateEmailRestaurante && isvalidatePasswordRestaurante){ //validar tanto el email como la contraseña
+                        // colocar datos para poder iniciar sesión
+                        auth.signInWithEmailAndPassword(inputEmailRestaurant, inputPasswordRestaurante)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful){
+                                    onSuccesfuloginRestaurante()
+                                }else{
+                                    loginErrorRestaurante= when(task.exception){ //tipo de advertencias  de error que van a aparecer si la contraseña o correo están mal, o si no existe el correo
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
+                                        is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
+                                        else -> "Error al iniciar sesión. Intenta de nuevo"
+                                    }
+
+                                }
+                            }
+
+                    }
+
+                          },
+
+
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF863939)
                 ),
@@ -356,7 +346,7 @@ fun LoginRestauranteScreen(
                         .fillMaxWidth()
                         .padding(end = 0.dp) // sin margen derecho extra
                 ) {
-                    // 🔹 Texto "Iniciar sesión"
+                    // Texto "Iniciar sesión"
                     Text(
                         text = "Iniciar sesión",
                         color = Color(0xFFFFFFFF),
@@ -369,7 +359,7 @@ fun LoginRestauranteScreen(
                     Box(
                         modifier = Modifier
                             .size(30.dp)
-                            .offset(x = 12.dp) // 🔸 Desplaza el círculo hacia afuera del borde
+                            .offset(x = 12.dp) //  Desplaza el círculo hacia afuera del borde
                             .background(
                                 color = Color(0xFFFFFFFF),
                                 shape = CircleShape

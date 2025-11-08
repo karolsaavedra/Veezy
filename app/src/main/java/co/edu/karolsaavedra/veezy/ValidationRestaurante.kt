@@ -9,11 +9,11 @@ import android.util.Patterns
 
 
 //iniciar sesión
-fun validateEmailRestaurante (email: String):Pair <Boolean, String>{ //pair, retornar los dos tipos de datos
+fun validateEmailRestaurante (emailRestaurante: String):Pair <Boolean, String>{ //pair, retornar los dos tipos de datos
     return when{
-        email.isEmpty() -> Pair(false, "EL correo es requerido")
-        !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->Pair(false, "El correo es invalido")
-        email.endsWith("@Veezy.com") -> Pair(false, "Ese email no es corporativo")  //verificar que el email termine en test.com, o en el que se desee
+        emailRestaurante.isEmpty() -> Pair(false, "EL correo es requerido")
+        !Patterns.EMAIL_ADDRESS.matcher(emailRestaurante).matches() ->Pair(false, "El correo es invalido")
+        !emailRestaurante.endsWith("@veezy.com") -> Pair(false, "Ese email no es corporativo")  //verificar que el email termine en test.com, o en el que se desee
         else -> {
             Pair (true, "")
         }
@@ -21,38 +21,41 @@ fun validateEmailRestaurante (email: String):Pair <Boolean, String>{ //pair, ret
 
 }
 
-fun validatePasswordRestaurante(password:String): Pair<Boolean, String>{
+fun validatePasswordRestaurante(passwordRestaurante:String): Pair<Boolean, String>{
     return when{
-        password.isEmpty() -> Pair(false, "La contraseña es requerida.")
-        password.length < 8 -> Pair(false, "La contraseña debe al menos tener 8 caracteres") //colocar un minimo de caracteres en la contraseña
-        !password.any {it.isDigit()} -> Pair(false, "La conraseña debe tener al menos un número") //debe tener números
+        passwordRestaurante.isEmpty() -> Pair(false, "La contraseña es requerida.")
+        passwordRestaurante.length < 8 -> Pair(false, "La contraseña debe al menos tener 8 caracteres") //colocar un minimo de caracteres en la contraseña
+        !passwordRestaurante.any {it.isDigit()} -> Pair(false, "La conraseña debe tener al menos un número") //debe tener números
         else -> Pair(true, "")
     }
 }
 
 //registro
-fun validateNameRestaurante (name :String): Pair <Boolean, String>{
+fun validateNameRestaurante (nameRestaurante :String): Pair <Boolean, String>{
     return when {
-        name.isEmpty() -> Pair(false, "El nombre es requerido")
-        name.length < 3 -> Pair(false, "El nombre debe tener al menos 3 caracteres")
+        nameRestaurante.isEmpty() -> Pair(false, "El nombre es requerido")
+        nameRestaurante.length < 3 -> Pair(false, "El nombre debe tener al menos 3 caracteres")
         else -> Pair(true,"")
     }
 
 }
 
-fun validateDireccion (name :String): Pair <Boolean, String>{
-    return when {
-        name.isEmpty() -> Pair(false, "La dirección es requerido")
-        name.length < 3 -> Pair(false, "La dirección debe tener al menos 3 caracteres")
-        else -> Pair(true,"")
-    }
+fun validateDireccion(direccion: String): Pair<Boolean, String> {
+    val regex = Regex("^[A-Za-zÁÉÍÓÚáéíóúÑñra0-9#°\\-\\.\\s]+$")
 
+    return when {
+        direccion.isEmpty() -> Pair(false, "La dirección es requerida.")
+        direccion.length < 5 -> Pair(false, "La dirección debe tener al menos 5 caracteres.")
+        !regex.matches(direccion) -> Pair(false, "La dirección contiene caracteres no válidos.")
+        else -> Pair(true, "")
+    }
 }
 
-fun validateConfirmPasswordRestaurante (password: String, confirmpassword: String): Pair <Boolean, String>{
+
+fun validateConfirmPasswordRestaurante (passwordRestaurante: String, confirmpasswordRestaurante: String): Pair <Boolean, String>{
     return  when{
-        confirmpassword.isEmpty() -> Pair(false, "La contraseña es requerida.")
-        confirmpassword != password -> Pair(false, "Las contraseñas no coinciden")
+        confirmpasswordRestaurante.isEmpty() -> Pair(false, "La contraseña es requerida.")
+        confirmpasswordRestaurante != passwordRestaurante -> Pair(false, "Las contraseñas no coinciden")
         else -> Pair(true, "")
     }
 

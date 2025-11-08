@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 
 @Composable
@@ -120,7 +121,7 @@ fun ProfileClienteScreen(
                         )
                     }
 
-                    // 🔹 Contenido central
+                    //  Contenido central
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -165,7 +166,7 @@ fun ProfileClienteScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // 🔹 INFORMACIÓN DEL USUARIO
+                //  INFORMACIÓN DEL USUARIO
                 Column(modifier = Modifier.padding(horizontal = 30.dp)) {
                     OutlinedTextField(
                         value = nombre,
@@ -190,10 +191,10 @@ fun ProfileClienteScreen(
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // 🔹 Botón "Cerrar sesión"
+                    //  Botón "Cerrar sesión"
                     Button(
                         onClick = {
-                            auth.signOut()
+                            FirebaseAuth.getInstance().signOut() // Cierra la sesión de Firebase
                             onClickLogout()
                         },
                         colors = ButtonDefaults.buttonColors(

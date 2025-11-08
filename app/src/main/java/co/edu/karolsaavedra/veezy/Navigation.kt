@@ -19,11 +19,18 @@ import co.edu.karolsaavedra.veezy.ViewRestaurante.QRScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.RegisterRestaurante
 import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
 import co.edu.karolsaavedra.veezy.menu.MenuScreen
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
 
 @Composable
 fun NavigationApp() {
+
+
     val myNavController = rememberNavController()
+
+
+
 
     NavHost(
         navController = myNavController,
@@ -35,13 +42,14 @@ fun NavigationApp() {
                 onClickRegisterCliente = { myNavController.navigate("registerCliente") },
                 onClickRegisterRestaurante = { myNavController.navigate("registerRestaurante") },
                 onClickStartapp = { myNavController.navigate("chooseRole") }
+
             )
         }
 
         //  Registro cliente
         composable("registerCliente") {
             RegisterCliente(
-                onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") {popUpTo(0) } },
+                onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") { popUpTo(0) } },
                 onClickBackRegister = { myNavController.popBackStack() }
             )
         }
@@ -50,7 +58,8 @@ fun NavigationApp() {
         composable("chooseRole") {
             ChooseRoleScreen(
                 onClickCliente = { myNavController.navigate("loginCliente") },
-                onClickRestaurante = { myNavController.navigate("loginRestaurante") }
+                onClickRestaurante = { myNavController.navigate("loginRestaurante") },
+                onClickBackChooseRole = { myNavController.popBackStack() }
             )
         }
 
@@ -66,11 +75,12 @@ fun NavigationApp() {
             )
         }
 
-
         //  Login Restaurante
         composable("loginRestaurante") {
             LoginRestauranteScreen(
-                onSuccesfuloginRestaurante = { myNavController.navigate("firstScreenRestaurant"){popUpTo("loginRestaurante") {inclusive = true} }},
+                onSuccesfuloginRestaurante = {
+                    myNavController.navigate("menuRestaurante")
+                },
                 onClickBackloginRestaurante = { myNavController.popBackStack() }
             )
         }
@@ -79,7 +89,11 @@ fun NavigationApp() {
         composable("profileCliente") {
             ProfileClienteScreen(
                 navController = myNavController,
-                onClickLogout = { myNavController.popBackStack() }
+                onClickLogout = {
+                    myNavController.navigate("loginCliente") {
+                        popUpTo("menuScreen") { inclusive = true } // limpia la pila hasta el menú
+                    }
+                }
             )
         }
 
@@ -94,20 +108,21 @@ fun NavigationApp() {
             )
         }
 
+
         //  Pantalla 1 (productos / menú)
         composable("menuScreen") {
             MenuScreen(navController = myNavController)
         }
 
-
-
+        //  Registro restaurante
         composable("registerRestaurante") {
             RegisterRestaurante(
-                onSuccesfuRegisterCliente = { myNavController.navigate("loginRestaurante") {popUpTo(0) } },
+                onSuccesfuRegisterCliente = { myNavController.navigate("loginRestaurante") { popUpTo(0) } },
                 onClickBackRegisterRestaurante = { myNavController.popBackStack() }
             )
         }
 
+        //  Alias / rutas adicionales
         composable(route = "pantalla1") { MenuScreen(myNavController) }
         composable(route = "profileCliente") { ProfileClienteScreen(myNavController) }
         composable(route = "mapaCliente") { MapaScreen(myNavController) }
@@ -126,7 +141,15 @@ fun NavigationApp() {
             QRScreen(navController = myNavController)
         }
 
+        composable("menuRestaurante") {
+            MenuRestauranteScreen(navController = myNavController)
+        }
 
+        composable(route = "menuRestaurante1") { MenuRestauranteScreen(myNavController) }
 
+        /* composable(route = "profileCliente") { ProfileClienteScreen(myNavController) }
+        composable(route = "mapaCliente") { MapaScreen(myNavController) }
+        composable(route = "chatCliente") { ChatScreen(myNavController) }
+        composable(route = "walletCliente") { ProductosScreen(myNavController) } */
     }
 }
