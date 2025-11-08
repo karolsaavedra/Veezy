@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
-import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar3
+
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 
 @Composable
@@ -45,7 +45,6 @@ fun MenuRestauranteScreen(navController: NavController) {
                     .background(Color(0xFF641717))
             ) {
                 BottomBarRestaurante(navController = navController, isBackgroundWine = true)
-
             }
         }
     ) { padding ->
@@ -129,7 +128,7 @@ fun MenuRestauranteScreen(navController: NavController) {
                         BurgerCard(burger = burger)
                     }
 
-                    // Card vacía para agregar nuevo producto
+                    //  Card vacía para agregar nuevo producto
                     item {
                         AddBurgerButton(onClick = {
                             // Aquí va la acción al presionar (navegar o abrir diálogo)
@@ -137,9 +136,6 @@ fun MenuRestauranteScreen(navController: NavController) {
                     }
                 }
             }
-
-            // Bottom bar
-            BottomBar3(modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }

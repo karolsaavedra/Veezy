@@ -79,7 +79,7 @@ fun NavigationApp() {
         composable("loginRestaurante") {
             LoginRestauranteScreen(
                 onSuccesfuloginRestaurante = {
-                    myNavController.navigate("menuRestaurante")
+                    myNavController.navigate("menuRestaurante") {popUpTo("loginRestaurante") { inclusive = true }}
                 },
                 onClickBackloginRestaurante = { myNavController.popBackStack() }
             )
@@ -145,7 +145,7 @@ fun NavigationApp() {
             MenuRestauranteScreen(navController = myNavController)
         }
 
-        composable(route = "menuRestaurante1") { MenuRestauranteScreen(myNavController) }
+        composable(route = "menuRestauranteScreen") { MenuRestauranteScreen(myNavController) }
 
         /* composable(route = "profileCliente") { ProfileClienteScreen(myNavController) }
         composable(route = "mapaCliente") { MapaScreen(myNavController) }

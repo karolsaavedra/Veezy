@@ -296,34 +296,30 @@ fun LoginRestauranteScreen(
             }
             Button(
                 onClick = {
-                    //TODA LA PARTE DE VALIDACIONES SE CONECTA CON VALIDATIONS.KT
-                    //agregar la validación de datos, y que pueda ingresar correctamente
-                    val isvalidateEmailRestaurante: Boolean = validateEmailRestaurante(inputEmailRestaurant).first //.first devuelve el valor booleano, si necesitaramos el string se colocaría .second
+                    // Validaciones
+                    val isvalidateEmailRestaurante = validateEmailRestaurante(inputEmailRestaurant).first
                     val isvalidatePasswordRestaurante = validatePasswordRestaurante(inputPasswordRestaurante).first
 
-                    //variables por si ocurre algún error al ingresar los datos
-                    EmailRestError = validateEmailRestaurante(inputEmailRestaurant).second //.second va a devolver el String
-                    passwordRestuaranteError = validatePasswordRestaurante(inputPasswordRestaurante).second //.second va a devolver el String
+                    EmailRestError = validateEmailRestaurante(inputEmailRestaurant).second
+                    passwordRestuaranteError = validatePasswordRestaurante(inputPasswordRestaurante).second
 
-                    if (isvalidateEmailRestaurante && isvalidatePasswordRestaurante){ //validar tanto el email como la contraseña
-                        // colocar datos para poder iniciar sesión
+                    if (isvalidateEmailRestaurante && isvalidatePasswordRestaurante) {
                         auth.signInWithEmailAndPassword(inputEmailRestaurant, inputPasswordRestaurante)
                             .addOnCompleteListener { task ->
-                                if (task.isSuccessful){
+                                if (task.isSuccessful) {
+                                    println(" Login exitoso del restaurante")
                                     onSuccesfuloginRestaurante()
-                                }else{
-                                    loginErrorRestaurante= when(task.exception){ //tipo de advertencias  de error que van a aparecer si la contraseña o correo están mal, o si no existe el correo
+                                } else {
+                                    println(" Login fallido: ${task.exception?.message}")
+                                    loginErrorRestaurante = when (task.exception) {
                                         is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
                                         is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
                                         else -> "Error al iniciar sesión. Intenta de nuevo"
                                     }
-
                                 }
                             }
-
                     }
-
-                          },
+                },
 
 
                 colors = ButtonDefaults.buttonColors(
