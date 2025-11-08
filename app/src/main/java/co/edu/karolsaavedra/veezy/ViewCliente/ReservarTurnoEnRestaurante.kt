@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,10 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,22 +37,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 
 
-
-
-@Preview(showBackground = true)
 @Composable
-fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -> Unit = {}) {
+fun PaginaReservas(
+    navController: NavController? = null, // Parámetro opcional para evitar error en Preview
+    onClickParaLlevar: () -> Unit = {},
+    onClickRestaurante: () -> Unit = {}
+) {
     var personas by remember { mutableStateOf(0) }
     var hamburguesas by remember { mutableStateOf(0) }
     var papas by remember { mutableStateOf(0) }
@@ -63,13 +62,18 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
 
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
-        bottomBar = { BottomBar() }
+        bottomBar = {
+            // Si hay navController, lo pasamos. Si no (Preview), mostramos sin él.
+            navController?.let {
+                BottomBar(navController = it)
+            } ?: BottomBarPreview()
+        }
     ) { paddingValues ->
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // ← Aplicamos el padding del Scaffold
+                .padding(paddingValues)
                 .background(Color(0xFFFAF0F0))
         ) {
             // 🔹 Encabezado burdeos
@@ -99,7 +103,7 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
                         .border(3.dp, Color(0xFFA979A7), CircleShape)
                 )
 
-                // Iconos superiores
+                // Icono superior
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -112,7 +116,6 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
-
                 }
             }
 
@@ -148,7 +151,10 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
-                        onClick = { opcionSeleccionada = "Restaurante" },
+                        onClick = {
+                            opcionSeleccionada = "Restaurante"
+                            onClickRestaurante()
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (opcionSeleccionada == "Restaurante") Color(0xFFFFC64F) else Color(0xFFEFEFEF),
                             contentColor = if (opcionSeleccionada == "Restaurante") Color.White else Color(0xFF641717)
@@ -156,15 +162,13 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text(
-                            text = "Restaurante",
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(text = "Restaurante", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = { opcionSeleccionada = "Para llevar"
-                                onClickParaLlevar()
-                                  },
+                        onClick = {
+                            opcionSeleccionada = "Para llevar"
+                            onClickParaLlevar()
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (opcionSeleccionada == "Para llevar") Color(0xFFE5A900) else Color(0xFFEFEFEF),
                             contentColor = if (opcionSeleccionada == "Para llevar") Color.White else Color(0xFF641717)
@@ -172,17 +176,14 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text(
-                            text = "Para llevar",
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(text = "Para llevar", fontWeight = FontWeight.Bold)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔹 Color dinámico según tipo
-                val fondoItems = if (opcionSeleccionada == "Restaurante") Color(0xFFFDECEC) else Color(0xFFFFF6E0)
+                val fondoItems =
+                    if (opcionSeleccionada == "Restaurante") Color(0xFFFDECEC) else Color(0xFFFFF6E0)
 
                 // 🔹 Lista de productos
                 ItemContador("Personas", personas, fondoItems,
@@ -239,7 +240,7 @@ fun PaginaReservas( onClickParaLlevar: () -> Unit = {}, onClickRestaurante: () -
                 modifier = Modifier
                     .size(250.dp)
                     .align(Alignment.TopCenter)
-                    .offset(y = 20.dp, x = (80).dp),
+                    .offset(y = 20.dp, x = 80.dp),
                 contentScale = ContentScale.Crop
             )
         }
@@ -263,11 +264,10 @@ fun ItemContador(
     ) {
         Row(
             modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0x85D9D9D9)),
+                .fillMaxWidth()
+                .background(Color(0x85D9D9D9)),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = titulo,
@@ -275,7 +275,6 @@ fun ItemContador(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 20.dp)
-
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onRestar) {
@@ -283,7 +282,6 @@ fun ItemContador(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Restar",
                         tint = Color(0xFF641717)
-
                     )
                 }
                 Text(
@@ -304,4 +302,23 @@ fun ItemContador(
     }
 }
 
+@Composable
+fun BottomBarPreview() {
+    // Versión de BottomBar vacía solo para el Preview (evita error de navegación)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .background(Color.LightGray),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("BottomBar Preview", color = Color.DarkGray)
+    }
+}
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewPaginaReservas() {
+    val navController = rememberNavController()
+    PaginaReservas(navController = navController)
+}

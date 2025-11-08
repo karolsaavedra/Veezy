@@ -20,11 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 import co.edu.karolsaavedra.veezy.R
 
 @Composable
-fun ProductosScreen() {
+fun ProductosScreen(navController: NavController) {
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -55,12 +56,12 @@ fun ProductosScreen() {
                 contentScale = ContentScale.None
             )
 
-            // ===== PANEL BLANCO PRINCIPAL (más abajo) =====
+            // ===== PANEL BLANCO PRINCIPAL =====
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(720.dp)
-                    .offset(y = 0.dp) // lo bajamos para que los íconos queden arriba
+                    .offset(y = 0.dp)
                     .align(Alignment.BottomCenter)
                     .background(
                         color = Color.White,
@@ -135,28 +136,25 @@ fun ProductosScreen() {
 
                 Spacer(modifier = Modifier.height(90.dp))
 
-                // ===== TARJETAS APILADAS UNA ENCIMA DE OTRA =====
+                // ===== TARJETAS APILADAS =====
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    // La tarjeta inferior se ve poco (oscura)
                     TurnoCard(
                         color = Color(0xFF641717),
                         modifier = Modifier
                             .offset(y = -60.dp)
                             .shadow(8.dp, RoundedCornerShape(20.dp))
                     )
-                    // Tarjeta del medio
                     TurnoCard(
                         color = Color(0xFF863939),
                         modifier = Modifier
                             .offset(y = -30.dp)
                             .shadow(8.dp, RoundedCornerShape(20.dp))
                     )
-                    // Tarjeta superior (clara)
                     TurnoCard(
                         color = Color(0xFFCB6363),
                         modifier = Modifier.shadow(8.dp, RoundedCornerShape(20.dp))
@@ -164,7 +162,7 @@ fun ProductosScreen() {
                 }
             }
 
-            // ===== ÍCONOS DE MENÚ Y CAMPANITA (sobre fondo rojizo) =====
+            // ===== ÍCONOS DE MENÚ Y CAMPANITA =====
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -185,7 +183,10 @@ fun ProductosScreen() {
             }
 
             // ===== BARRA INFERIOR =====
-            BottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+            BottomBar(
+                navController = navController, isBackgroundWine = false,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
@@ -204,7 +205,6 @@ fun TurnoCard(color: Color, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Texto
             Text(
                 text = "Turno en fila",
                 style = TextStyle(
@@ -215,7 +215,6 @@ fun TurnoCard(color: Color, modifier: Modifier = Modifier) {
                 )
             )
 
-            // Cuadro QR
             Box(
                 modifier = Modifier
                     .size(110.dp)
@@ -233,9 +232,12 @@ fun TurnoCard(color: Color, modifier: Modifier = Modifier) {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewProductosScreen() {
-    ProductosScreen()
+    // Preview sin navController
+    // Puedes crear un FakeNavController si da error
+    // Ejemplo:
+    // val navController = rememberNavController()
+    // ProductosScreen(navController)
 }

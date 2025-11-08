@@ -19,11 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 
 @Composable
-fun ChatScreen() {
+fun ChatScreen(navController: NavController) {
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -164,8 +165,10 @@ fun ChatScreen() {
                 )
             }
 
-            // ===== BARRA INFERIOR =====
-            BottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+            BottomBar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                navController = navController, isBackgroundWine = false
+            )
         }
     }
 }
@@ -173,5 +176,5 @@ fun ChatScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewChatScreen() {
-    ChatScreen()
+    ChatScreen(navController = androidx.navigation.compose.rememberNavController())
 }

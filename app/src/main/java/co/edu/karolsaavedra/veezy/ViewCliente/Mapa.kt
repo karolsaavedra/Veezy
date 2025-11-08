@@ -19,11 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 import co.edu.karolsaavedra.veezy.R
 
 @Composable
-fun MapaScreen() {
+fun MapaScreen(navController: NavController) {
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -151,7 +152,11 @@ fun MapaScreen() {
             }
 
             // ===== BARRA INFERIOR =====
-            BottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+            BottomBar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                navController = navController, isBackgroundWine = false
+            )
+
         }
     }
 }
@@ -160,5 +165,5 @@ fun MapaScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMapaScreen() {
-    MapaScreen()
+    MapaScreen(navController = androidx.navigation.compose.rememberNavController())
 }

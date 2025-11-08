@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,10 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,19 +37,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 
-@Preview(showBackground = true)
 @Composable
 fun PaginaReservasParallevar(
+    navController: NavController, // Se agrega el parámetro requerido
     onClickParaLlevar: () -> Unit = {},
     onClickParaRestaurante: () -> Unit = {}
 ) {
@@ -62,7 +60,7 @@ fun PaginaReservasParallevar(
 
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
-        bottomBar = { BottomBar() }
+        bottomBar = { BottomBar(navController = navController, isBackgroundWine = false) } // Se pasa el navController
     ) { paddingValues ->
 
         Box(
@@ -165,11 +163,11 @@ fun PaginaReservasParallevar(
                         Text(text = "Restaurante", fontWeight = FontWeight.Bold)
                     }
 
-                    // 🔹 Botón Para llevar (amarillo)
+                    // 🔹 Botón Para llevar
                     Button(
                         onClick = {
                             opcionSeleccionada = "Para llevar"
-                            onClickParaRestaurante()
+                            onClickParaLlevar()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (opcionSeleccionada == "Para llevar")
@@ -193,8 +191,8 @@ fun PaginaReservasParallevar(
                     Color(0xFFFDECEC)
                 else Color(0xFFFFF6E0)
 
-                // 🔹 Lista (sin Personas)
-                ItemContador(
+                // 🔹 Lista de productos
+                ItemContador2(
                     titulo = "Hamburguesas",
                     cantidad = hamburguesas,
                     fondoColor = fondoItems,
@@ -310,4 +308,11 @@ fun ItemContador2(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPaginaReservasParallevar() {
+    val navController = rememberNavController()
+    PaginaReservasParallevar(navController = navController)
 }

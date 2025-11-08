@@ -35,13 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
-import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar2
 
-@Preview(showBackground = true)
 @Composable
-fun EditarMenuScreen() {
+fun EditarMenuScreen(navController: NavController) {
     Scaffold(
         containerColor = Color.White // Fondo general blanco
     ) { paddingValues ->
@@ -96,7 +96,6 @@ fun EditarMenuScreen() {
                     )
                 )
             }
-
 
             // ===== CARD DEL FORMULARIO =====
             Card(
@@ -159,7 +158,7 @@ fun EditarMenuScreen() {
 
             // ===== BOTÓN SIGUIENTE =====
             Button(
-                onClick = { " " },
+                onClick = { /* Acción siguiente */ },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFCC00)),
                 shape = RoundedCornerShape(30.dp),
                 modifier = Modifier
@@ -177,7 +176,7 @@ fun EditarMenuScreen() {
             }
 
             // ===== BARRA INFERIOR =====
-            BottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+            BottomBar(navController = navController, isBackgroundWine = false, modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }
@@ -206,4 +205,11 @@ fun LabeledTextField(label: String, placeholder: String, labelColor: Color) {
             modifier = Modifier.fillMaxWidth()
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditarMenuScreenPreview() {
+    val navController = rememberNavController()
+    EditarMenuScreen(navController)
 }

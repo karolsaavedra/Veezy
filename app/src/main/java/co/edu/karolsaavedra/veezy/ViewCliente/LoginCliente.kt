@@ -82,7 +82,8 @@ fun LoginClienteScreen(
     var emailErrorCliente by remember { mutableStateOf("") }
     var passwordErrorlogincliente by remember { mutableStateOf("")}
 
-    val activity = LocalView.current.context as Activity
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     val auth = Firebase.auth
 
@@ -303,27 +304,24 @@ fun LoginClienteScreen(
                     emailErrorCliente = validateEmail(inputEmail).second //.second va a devolver el String
                     passwordErrorlogincliente = validatePassword(inputPasswordCliente).second //.second va a devolver el String
 
-                    if (isValidEmail && isValidPassword){ //validar tanto el email como la contraseña
-                        // colocar datos para poder iniciar sesión
+                    if (isValidEmail && isValidPassword) {
                         auth.signInWithEmailAndPassword(inputEmail, inputPasswordCliente)
-                            .addOnCompleteListener (activity){ task ->
-                                if (task.isSuccessful){
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
                                     onSuccesfuloginCliente()
-                                }else{
-                                    loginErrorCliente= when(task.exception){ //tipo de advertencias  de error que van a aparecer si la contraseña o correo están mal, o si no existe el correo
+                                } else {
+                                    loginErrorCliente = when (task.exception) {
                                         is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
                                         is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
                                         else -> "Error al iniciar sesión. Intenta de nuevo"
                                     }
-
                                 }
                             }
-
-                }
-
+                    }
 
 
-                 },
+
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF863939)
                 ),

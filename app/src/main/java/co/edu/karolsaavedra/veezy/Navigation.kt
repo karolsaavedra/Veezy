@@ -4,17 +4,22 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import co.edu.karolsaavedra.veezy.ViewCliente.ChatScreen
 import co.edu.karolsaavedra.veezy.ViewCliente.EncabezadoConfiguracion
 import co.edu.karolsaavedra.veezy.ViewCliente.LoginClienteScreen
+import co.edu.karolsaavedra.veezy.ViewCliente.MapaScreen
+import co.edu.karolsaavedra.veezy.ViewCliente.ProductosScreen
 import co.edu.karolsaavedra.veezy.ViewCliente.ProfileClienteScreen
 import co.edu.karolsaavedra.veezy.ViewCliente.RegisterCliente
 import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
 import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.ClinetsWaitingScreen
+import co.edu.karolsaavedra.veezy.ViewRestaurante.ClientsWaitingScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
+import co.edu.karolsaavedra.veezy.ViewRestaurante.QRScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.RegisterRestaurante
 import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
 import co.edu.karolsaavedra.veezy.menu.MenuScreen
+
 
 @Composable
 fun NavigationApp() {
@@ -52,10 +57,15 @@ fun NavigationApp() {
         //  Login Cliente
         composable("loginCliente") {
             LoginClienteScreen(
-                onSuccesfuloginCliente = { myNavController.navigate("menuCliente") },
-                onClickBackLoginCliente = { myNavController.popBackStack() }
+                onSuccesfuloginCliente = {
+                    myNavController.navigate("menuScreen")
+                },
+                onClickBackLoginCliente = {
+                    myNavController.popBackStack()
+                }
             )
         }
+
 
         //  Login Restaurante
         composable("loginRestaurante") {
@@ -68,20 +78,29 @@ fun NavigationApp() {
         //  Perfil Cliente
         composable("profileCliente") {
             ProfileClienteScreen(
+                navController = myNavController,
                 onClickLogout = { myNavController.popBackStack() }
             )
         }
 
-        //  Configuración Cliente
+        // Configuración Cliente
         composable("settingsCliente") {
             EncabezadoConfiguracion(
-                onClickBackConfig = { myNavController.popBackStack() }
+                onClickBackConfig = {
+                    myNavController.navigate("menuScreen") {
+                        popUpTo("menuScreen") { inclusive = true }
+                    }
+                }
             )
         }
 
-        composable("menuCliente") {
-            MenuScreen()
+        //  Pantalla 1 (productos / menú)
+        composable("menuScreen") {
+            MenuScreen(navController = myNavController)
         }
+
+
+
         composable("registerRestaurante") {
             RegisterRestaurante(
                 onSuccesfuRegisterCliente = { myNavController.navigate("loginRestaurante") {popUpTo(0) } },
@@ -89,7 +108,23 @@ fun NavigationApp() {
             )
         }
 
+        composable(route = "pantalla1") { MenuScreen(myNavController) }
+        composable(route = "profileCliente") { ProfileClienteScreen(myNavController) }
+        composable(route = "mapaCliente") { MapaScreen(myNavController) }
+        composable(route = "chatCliente") { ChatScreen(myNavController) }
+        composable(route = "walletCliente") { ProductosScreen(myNavController) }
 
+        composable("chat") {
+            ChatScreen(navController = myNavController)
+        }
+
+        composable("clientsWaiting") {
+            ClientsWaitingScreen(navController = myNavController)
+        }
+
+        composable("qrScreen") {
+            QRScreen(navController = myNavController)
+        }
 
 
 

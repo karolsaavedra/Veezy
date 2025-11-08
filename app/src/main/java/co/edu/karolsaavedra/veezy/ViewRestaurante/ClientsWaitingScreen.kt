@@ -35,24 +35,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import co.edu.karolsaavedra.veezy.ViewRestaurante.ClientsWaitingScreen
 
-@Preview(showBackground = true)
+
 @Composable
-
-fun ClinetsWaitingScreen(
-
-){
+fun ClientsWaitingScreen(
+    navController: NavController // Agregado correctamente
+) {
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
-        bottomBar = { BottomBar() }
+        bottomBar = { BottomBar(navController = navController) } // Se pasa el navController
     ) { paddingValues ->
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // ← Aplicamos el padding del Scaffold
+                .padding(paddingValues)
                 .background(Color(0xFFFAF0F0))
         ) {
             // 🔹 Encabezado burdeos
@@ -82,7 +84,7 @@ fun ClinetsWaitingScreen(
                         .border(3.dp, Color(0xFFA979A7), CircleShape)
                 )
 
-                // Iconos superiores
+                // Icono superior
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -95,9 +97,10 @@ fun ClinetsWaitingScreen(
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
-
                 }
             }
+
+            // 🔹 Contenido principal
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -127,24 +130,24 @@ fun ClinetsWaitingScreen(
                 ClientCard()
                 Spacer(modifier = Modifier.height(20.dp))
                 ClientCard()
-
             }
 
-
+            // 🔹 Imagen decorativa
             Image(
                 painter = painterResource(id = R.drawable.tocino),
                 contentDescription = "tocino",
                 modifier = Modifier
                     .size(163.dp)
                     .align(Alignment.TopCenter)
-                    .offset(y = 100.dp, x = (70).dp),
+                    .offset(y = 100.dp, x = 70.dp),
                 contentScale = ContentScale.Crop
             )
         }
+    }
 }
-}
+
 @Composable
-fun ClientCard(){
+fun ClientCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,15 +183,13 @@ fun ClientCard(){
                         color = Color.Gray,
                         fontSize = 14.sp
                     )
-
                 }
                 Spacer(modifier = Modifier.height(15.dp))
                 Button(
-                    onClick = { /* Acción Listo */ },
+                    onClick = { /* Acción Información */ },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD99C00)),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.height(32.dp)
-
                 ) {
                     Text(
                         text = "Información",
@@ -215,4 +216,11 @@ fun ClientCard(){
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewClientsWaitingScreen() {
+    val navController = rememberNavController()
+    ClientsWaitingScreen(navController = navController)
 }
