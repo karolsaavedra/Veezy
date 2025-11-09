@@ -67,6 +67,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.util.UUID
 
 @Preview(showBackground = true)
 @Composable
@@ -456,21 +458,54 @@ fun RegisterCliente(
                     passwordErrorRegister = validatePassword(inputpassworRegister).second
                     ConfrimpasswordErrorRegister = validateConfirmPassword(inputpassworRegister,inputConfirmpasswordRegister).second
 
-                    if (isValidName && isValidLastName && isValidEmail && isValidPassword && isValidConfirmPassword){
+                    if (isValidName && isValidLastName && isValidEmail && isValidPassword && isValidConfirmPassword) {
                         auth.createUserWithEmailAndPassword(inputEmailRegister, inputpassworRegister)
-                            .addOnCompleteListener(activity) { task->
-                                if (task.isSuccessful){
-                                    onSuccesfuRegisterCliente()
-                                }else{
-                                    registerError = when(task.isSuccessful){
-                                        is FirebaseAuthInvalidCredentialsException -> "Correo invalido"
+                            .addOnCompleteListener(activity) { task ->
+                                if (task.isSuccessful) {
+                                    val userId = auth.currentUser?.uid ?: ""
+                                    val db = FirebaseFirestore.getInstance()
+
+                                    //  Generar un código único para el cliente
+                                    val codigoCliente = "CLI-" + UUID.randomUUID().toString().substring(0, 8).uppercase()
+
+                                    //  Crear mapa de datos para Firestore
+                                    val clienteData = hashMapOf(
+                                        "uid" to userId,
+                                        "nombre" to inputname,
+                                        "apellido" to inputapellido,
+                                        "correo" to inputEmailRegister,
+                                        "codigoCliente" to codigoCliente,
+                                        "rol" to "cliente",
+                                        // 🔹 Datos del turno (se pueden actualizar luego)
+                                        "turno" to mapOf(
+                                            "cantidadHamburguesas" to 0,
+                                            "numeroTurno" to "",
+                                            "tiempoEspera" to "",
+                                            "codigoQR" to "",
+                                            "tipoPedido" to "",
+                                            "personasRestaurante" to 0
+                                        )
+                                    )
+
+                                    //  Guardar en la colección "Clientes"
+                                    db.collection("Clientes").document(userId)
+                                        .set(clienteData)
+                                        .addOnSuccessListener {
+                                            onSuccesfuRegisterCliente()
+                                        }
+                                        .addOnFailureListener { e ->
+                                            registerError = "Error al guardar en Firestore: ${e.message}"
+                                        }
+
+                                } else {
+                                    registerError = when (val e = task.exception) {
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo inválido"
                                         is FirebaseAuthUserCollisionException -> "Correo ya registrado"
-                                        else -> "Error al registrarse"
+                                        else -> "Error al registrarse: ${e?.localizedMessage}"
                                     }
                                 }
                             }
-
-                    }else{
+                    } else {
                         registerError = "Hubo un error en el registro"
                     }
 

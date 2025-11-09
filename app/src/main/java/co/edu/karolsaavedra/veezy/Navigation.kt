@@ -20,6 +20,7 @@ import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.QRScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.RegisterRestaurante
 import co.edu.karolsaavedra.veezy.menu.AgregarProductoScreen
+import co.edu.karolsaavedra.veezy.menu.BurgerCard
 import co.edu.karolsaavedra.veezy.menu.EditarMenuScreen
 import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
 import co.edu.karolsaavedra.veezy.menu.MenuScreen
@@ -177,5 +178,9 @@ fun NavigationApp() {
         composable("agregarProducto") {
             AgregarProductoScreen(navController = myNavController)
         }
-    }
+
+        /*composable("DetallesHamburguesa") {
+            BurgerCard(navController = myNavController)
+    }*/
+}
 }
