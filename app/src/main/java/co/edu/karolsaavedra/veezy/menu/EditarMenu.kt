@@ -20,6 +20,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -39,6 +41,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 
 @Composable
 fun EditarMenuScreen(navController: NavController) {
@@ -80,6 +83,20 @@ fun EditarMenuScreen(navController: NavController) {
                     .align(Alignment.TopEnd),
                 contentScale = ContentScale.None
             )
+            // ===== FLECHA VOLVER =====
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 40.dp, start = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow),
+                    contentDescription = "Volver",
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
             // ===== TÍTULO =====
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -158,7 +175,7 @@ fun EditarMenuScreen(navController: NavController) {
 
             // ===== BOTÓN SIGUIENTE =====
             Button(
-                onClick = { /* Acción siguiente */ },
+                onClick = { navController.navigate("agregarProducto") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFCC00)),
                 shape = RoundedCornerShape(30.dp),
                 modifier = Modifier
@@ -176,7 +193,7 @@ fun EditarMenuScreen(navController: NavController) {
             }
 
             // ===== BARRA INFERIOR =====
-            BottomBar(navController = navController, isBackgroundWine = false, modifier = Modifier.align(Alignment.BottomCenter))
+            BottomBarRestaurante(navController = navController, isBackgroundWine = false, modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }

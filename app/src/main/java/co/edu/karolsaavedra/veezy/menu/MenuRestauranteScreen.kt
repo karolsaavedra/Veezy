@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -12,13 +13,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -28,14 +36,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
 @Composable
-fun MenuRestauranteScreen(navController: NavController) {
+fun MenuRestauranteScreen(navController: NavHostController,
+                          onClickLogout: () -> Unit = {}
+) {
     Scaffold(
         containerColor = Color(0xFF641717),
         bottomBar = {
@@ -85,9 +99,31 @@ fun MenuRestauranteScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 28.dp, vertical = 54.dp),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Button(//REVISAR LO QUE INTENTE EN NAVIGATION LINEA 157 att:Edson
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut() // Cierra la sesión de Firebase
+                            navController.navigate("loginRestaurante") {  // nombre  de la ruta en el NavHost
+                                popUpTo("menuRestauranteScreen") { inclusive = true } // elimina pantallas previas
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD99C00)
+                        ),
+                        shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier
+                            .height(48.dp)
+                            .shadow(4.dp, RoundedCornerShape(50.dp))
+                    ) {
+                        Text(
+                            text = "Cerrar sesión",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Editar",
@@ -131,7 +167,7 @@ fun MenuRestauranteScreen(navController: NavController) {
                     //  Card vacía para agregar nuevo producto
                     item {
                         AddBurgerButton(onClick = {
-                            // Aquí va la acción al presionar (navegar o abrir diálogo)
+                            navController.navigate("editarMenu")
                         })
                     }
                 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,22 +40,30 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 import co.edu.karolsaavedra.veezy.ViewRestaurante.ClientsWaitingScreen
 
 
 @Composable
-fun ClientsWaitingScreen(
-    navController: NavController // Agregado correctamente
-) {
+fun ClientsWaitingScreen(navController: NavController){ // Agregado correctamente
+
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
-        bottomBar = { BottomBar(navController = navController) } // Se pasa el navController
-    ) { paddingValues ->
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .navigationBarsPadding() // evita que la barra quede muy abajo
+                    .background(Color(0xFF641717))
+            ) {
+                BottomBarRestaurante(navController = navController, isBackgroundWine = false)
+            }
+        }
+    ){ padding ->
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(padding)
                 .background(Color(0xFFFAF0F0))
         ) {
             // 🔹 Encabezado burdeos

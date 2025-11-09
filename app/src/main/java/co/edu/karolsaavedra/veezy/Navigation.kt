@@ -14,10 +14,13 @@ import co.edu.karolsaavedra.veezy.ViewCliente.ProfileClienteScreen
 import co.edu.karolsaavedra.veezy.ViewCliente.RegisterCliente
 import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
 import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
+import co.edu.karolsaavedra.veezy.ViewRestaurante.ChatRestauranteScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.ClientsWaitingScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.QRScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.RegisterRestaurante
+import co.edu.karolsaavedra.veezy.menu.AgregarProductoScreen
+import co.edu.karolsaavedra.veezy.menu.EditarMenuScreen
 import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
 import co.edu.karolsaavedra.veezy.menu.MenuScreen
 import com.google.firebase.auth.FirebaseAuth
@@ -29,8 +32,6 @@ fun NavigationApp() {
 
 
     val myNavController = rememberNavController()
-
-
 
 
     NavHost(
@@ -153,15 +154,28 @@ fun NavigationApp() {
             QRScreen(navController = myNavController)
         }
 
-        composable("menuRestaurante") {
-            MenuRestauranteScreen(navController = myNavController)
+        composable("menuRestaurante") {//ESTO GUE LO QUE INTENTE PROBABLEMENTE  MAL Att: edson
+            MenuRestauranteScreen(navController = myNavController,
+                onClickLogout = {
+                    myNavController.navigate("loginRestaurante") {
+                        popUpTo("menuRestaurante") { inclusive = true }
+
+                    }
+                }
+            )
         }
 
         composable(route = "menuRestauranteScreen") { MenuRestauranteScreen(myNavController) }
 
-        /* composable(route = "profileCliente") { ProfileClienteScreen(myNavController) }
-        composable(route = "mapaCliente") { MapaScreen(myNavController) }
-        composable(route = "chatCliente") { ChatScreen(myNavController) }
-        composable(route = "walletCliente") { ProductosScreen(myNavController) } */
+        composable("menuRestauranteScreen") { MenuRestauranteScreen(navController = myNavController) }
+        composable("scanRestaurante") { QRScreen(navController = myNavController)}
+        composable("profileRestaurante") { ClientsWaitingScreen(navController = myNavController)}
+        composable("chatRestaurante") { ChatRestauranteScreen(navController = myNavController)}
+
+        composable("editarMenu") {
+            EditarMenuScreen(navController = myNavController)}
+        composable("agregarProducto") {
+            AgregarProductoScreen(navController = myNavController)
+        }
     }
 }

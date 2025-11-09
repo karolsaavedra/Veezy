@@ -26,11 +26,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 
 @Composable
-fun QRScreen(navController: NavController=rememberNavController()) { // Se agrega el navController
+fun QRScreen(navController: NavController) { // Se agrega el navController
     var scanResult by remember { mutableStateOf<String?>(null) }
     var scanLauncher= rememberLauncherForActivityResult(
         contract = ScanContract(),
@@ -42,12 +43,21 @@ fun QRScreen(navController: NavController=rememberNavController()) { // Se agreg
 
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
-    ) { paddingValues ->
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .navigationBarsPadding() // evita que la barra quede muy abajo
+                    .background(Color(0xFF641717))
+            ) {
+                BottomBarRestaurante(navController = navController, isBackgroundWine = false)
+            }
+        }
+    ){ padding ->
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(padding)
                 .background(Color(0xFFFAF0F0))
         ) {
             //  Encabezado burdeos

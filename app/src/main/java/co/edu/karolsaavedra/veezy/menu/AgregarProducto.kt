@@ -30,11 +30,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 
-@Preview(showBackground = true)
+
 @Composable
-fun AgregarProductoScreen() {
+fun AgregarProductoScreen(navController: NavController) {
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -55,7 +57,7 @@ fun AgregarProductoScreen() {
                 Spacer(modifier = Modifier.height(40.dp))
 
                 IconButton(
-                    onClick = { " "},
+                    onClick = {navController.popBackStack()},
                     modifier = Modifier
                         .size(40.dp)
                         .align(Alignment.Start)
@@ -173,4 +175,10 @@ fun LabeledTextField2(label: String, placeholder: String, labelColor: Color) {
             modifier = Modifier.fillMaxWidth()
         )
     }
+}
+@Preview(showBackground = true)
+@Composable
+fun AgregarProductoScreenPreview() {
+    val navController = rememberNavController()
+    AgregarProductoScreen(navController = navController)
 }

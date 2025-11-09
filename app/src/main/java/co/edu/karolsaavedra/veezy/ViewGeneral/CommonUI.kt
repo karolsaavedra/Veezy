@@ -97,11 +97,10 @@ fun BottomBarRestaurante(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val items = listOf(
-            Pair(R.drawable.profile___iconly_pro, "profileCliente"),
-            Pair(R.drawable.location___iconly_pro, "mapaCliente"),
+            Pair(R.drawable.profile___iconly_pro, "profileRestaurante"),
+            Pair(R.drawable.scan, "scanRestaurante"),
             Pair(R.drawable.home___iconly_pro, "menuRestauranteScreen"),
-            Pair(R.drawable.chat_2___iconly_pro, "chatCliente"),
-            Pair(R.drawable.wallet___iconly_pro, "walletCliente")
+            Pair(R.drawable.chat_2___iconly_pro, "chatRestaurante"),
         )
 
         items.forEach { (icon, route) ->

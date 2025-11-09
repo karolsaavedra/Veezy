@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import co.edu.karolsaavedra.veezy.ViewCliente.TurnoScreen
 import co.edu.karolsaavedra.veezy.ViewRestaurante.QRScreen
+import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
 import co.edu.karolsaavedra.veezy.producto.InfoProducto
 import co.edu.karolsaavedra.veezy.ui.theme.VeezyTheme
 
