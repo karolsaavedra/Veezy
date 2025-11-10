@@ -102,12 +102,12 @@ fun MenuRestauranteScreen(navController: NavHostController,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(//REVISAR LO QUE INTENTE EN NAVIGATION LINEA 157 att:Edson
+                    Button(
                         onClick = {
                             FirebaseAuth.getInstance().signOut() // Cierra la sesión de Firebase
                             navController.navigate("loginRestaurante") {  // nombre  de la ruta en el NavHost
                                 popUpTo("menuRestauranteScreen") { inclusive = true } // elimina pantallas previas
-                            }
+                                }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD99C00)
@@ -124,12 +124,7 @@ fun MenuRestauranteScreen(navController: NavHostController,
                             fontSize = 16.sp
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar",
-                        tint = Color(0xFFF0F3FA),
-                        modifier = Modifier.size(24.dp)
-                    )
+
                 }
 
                 // Título

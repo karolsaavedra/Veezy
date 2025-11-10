@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.compose.foundation.layout)
 
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,6 +65,12 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation("com.google.firebase:firebase-auth-ktx:23.1.0")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.1.0")
+    implementation("com.google.firebase:firebase-analytics-ktx:22.1.2")
+
+    //Navigation
+    implementation(libs.androidx.navigation.compose)
 
     //firebase
     implementation(libs.firebase.bom)
@@ -77,6 +85,9 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     //Generar codigo QR
     implementation("com.simonsickle:composed-barcodes:1.3.0")
+
+
+
 
 
 }

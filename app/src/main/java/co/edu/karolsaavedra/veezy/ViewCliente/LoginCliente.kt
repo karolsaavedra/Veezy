@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -285,12 +286,17 @@ fun LoginClienteScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (loginErrorCliente.isNotEmpty()){
+            if (loginErrorCliente.isNotEmpty()) {
                 Text(
-                    loginErrorCliente,
+                    text = loginErrorCliente,
                     color = Color.Red,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                )
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .wrapContentWidth(Alignment.CenterHorizontally),
+                    textAlign = TextAlign.Center
+                    )
             }
 
             Button(

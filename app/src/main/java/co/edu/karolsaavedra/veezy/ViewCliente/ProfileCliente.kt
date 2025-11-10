@@ -220,7 +220,7 @@ fun ProfileClienteScreen(
                 }
             }
 
-            // 🔹 Barra inferior
+            // Barra inferior
             BottomBar(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 navController = navController,

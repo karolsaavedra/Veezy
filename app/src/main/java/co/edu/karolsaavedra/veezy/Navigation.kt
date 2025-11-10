@@ -1,181 +1,183 @@
 package co.edu.karolsaavedra.veezy
 
-import android.util.Log
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import co.edu.karolsaavedra.veezy.ViewCliente.ChatScreen
-import co.edu.karolsaavedra.veezy.ViewCliente.EncabezadoConfiguracion
-import co.edu.karolsaavedra.veezy.ViewCliente.LoginClienteScreen
-import co.edu.karolsaavedra.veezy.ViewCliente.MapaScreen
-import co.edu.karolsaavedra.veezy.ViewCliente.ProductosScreen
-import co.edu.karolsaavedra.veezy.ViewCliente.ProfileClienteScreen
-import co.edu.karolsaavedra.veezy.ViewCliente.RegisterCliente
-import co.edu.karolsaavedra.veezy.ViewGeneral.ChooseRoleScreen
-import co.edu.karolsaavedra.veezy.ViewGeneral.StartScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.ChatRestauranteScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.ClientsWaitingScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.LoginRestauranteScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.QRScreen
-import co.edu.karolsaavedra.veezy.ViewRestaurante.RegisterRestaurante
-import co.edu.karolsaavedra.veezy.menu.AgregarProductoScreen
-import co.edu.karolsaavedra.veezy.menu.EditarMenuScreen
-import co.edu.karolsaavedra.veezy.menu.MenuRestauranteScreen
-import co.edu.karolsaavedra.veezy.menu.MenuScreen
+import co.edu.karolsaavedra.veezy.ViewCliente.*
+import co.edu.karolsaavedra.veezy.ViewGeneral.*
+import co.edu.karolsaavedra.veezy.ViewRestaurante.*
+import co.edu.karolsaavedra.veezy.menu.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
-
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun NavigationApp() {
+    val navController = rememberNavController()
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
+    // Se inicializa como null para saber cuándo mostrar el NavHost
+    var startDestination by remember { mutableStateOf<String?>(null) }
 
-    val myNavController = rememberNavController()
-
-
-    NavHost(
-        navController = myNavController,
-        startDestination = "startApp"
-    ) {
-        //  Pantalla inicial
-        composable("startApp") {
-            StartScreen(
-                onClickRegisterCliente = { myNavController.navigate("registerCliente") },
-                onClickRegisterRestaurante = {
-                    Log.i("login", "registerRestaurante")
-                    myNavController.navigate("registerRestaurante") },
-                onClickStartapp = {
-                    Log.i("login", "chooseRole")
-                    myNavController.navigate("chooseRole") }
-
-            )
-        }
-
-        //  Registro cliente
-        composable("registerCliente") {
-            RegisterCliente(
-                onSuccesfuRegisterCliente = { myNavController.navigate("loginCliente") { popUpTo(0) } },
-                onClickBackRegister = { myNavController.popBackStack() }
-            )
-        }
-
-        //  Elección de rol
-        composable("chooseRole") {
-            ChooseRoleScreen(
-                onClickCliente = {
-                    Log.i("login", "loginCliente")
-                    myNavController.navigate("loginCliente") },
-                onClickRestaurante = {
-                    Log.i("login", "loginRestaurante")
-
-                    myNavController.navigate("loginRestaurante") },
-                onClickBackChooseRole = { myNavController.popBackStack() }
-            )
-        }
-
-        //  Login Cliente
-        composable("loginCliente") {
-            LoginClienteScreen(
-                onSuccesfuloginCliente = {
-                    myNavController.navigate("menuScreen")
-                },
-                onClickBackLoginCliente = {
-                    myNavController.popBackStack()
-                }
-            )
-        }
-
-        //  Login Restaurante
-        composable("loginRestaurante") {
-            LoginRestauranteScreen(
-                onSuccesfuloginRestaurante = {
-                    Log.i("login", "menuRestaurante")
-
-                    myNavController.navigate("menuRestaurante") {popUpTo("loginRestaurante") { inclusive = true }}
-                },
-                onClickBackloginRestaurante = { myNavController.popBackStack() }
-            )
-        }
-
-        //  Perfil Cliente
-        composable("profileCliente") {
-            ProfileClienteScreen(
-                navController = myNavController,
-                onClickLogout = {
-                    myNavController.navigate("loginCliente") {
-                        popUpTo("menuScreen") { inclusive = true } // limpia la pila hasta el menú
+    // Verificar si el usuario ya está autenticado y cuál es su rol
+    LaunchedEffect(Unit) {
+        val user = auth.currentUser
+        if (user != null) {
+            db.collection("usuarios").document(user.uid).get()
+                .addOnSuccessListener { doc ->
+                    startDestination = when (doc.getString("rol")) {
+                        "cliente" -> "menuScreen"
+                        "restaurante" -> "menuRestaurante"
+                        else -> "chooseRole"
                     }
                 }
-            )
-        }
-
-        // Configuración Cliente
-        composable("settingsCliente") {
-            EncabezadoConfiguracion(
-                onClickBackConfig = {
-                    myNavController.navigate("menuScreen") {
-                        popUpTo("menuScreen") { inclusive = true }
-                    }
+                .addOnFailureListener {
+                    startDestination = "chooseRole"
                 }
-            )
+        } else {
+            startDestination = "startApp"
         }
+    }
+
+    // Mientras no se haya determinado el destino inicial, muestra una pantalla de carga
+    if (startDestination == null) {
+        LoadingScreen()
+    } else {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination!!
+        ) {
+            // Pantalla inicial
+            composable("startApp") {
+                StartScreen(
+                    onClickRegisterCliente = { navController.navigate("registerCliente") },
+                    onClickRegisterRestaurante = { navController.navigate("registerRestaurante") },
+                    onClickStartapp = { navController.navigate("chooseRole") }
+                )
+            }
+
+            // Registro cliente
+            composable("registerCliente") {
+                RegisterCliente(
+                    onSuccesfuRegisterCliente = { navController.navigate("loginCliente") { popUpTo(0) } },
+                    onClickBackRegister = { navController.popBackStack() }
+                )
+            }
+
+            // Registro restaurante
+            composable("registerRestaurante") {
+                RegisterRestaurante(
+                    onSuccesfuRegisterCliente = { navController.navigate("loginRestaurante") { popUpTo(0) } },
+                    onClickBackRegisterRestaurante = { navController.popBackStack() }
+                )
+            }
+
+            // Elección de rol
+            composable("chooseRole") {
+                ChooseRoleScreen(
+                    onClickCliente = { navController.navigate("loginCliente") },
+                    onClickRestaurante = { navController.navigate("loginRestaurante") },
+                    onClickBackChooseRole = { navController.popBackStack() }
+                )
+            }
+
+            // Login Cliente
+            composable("loginCliente") {
+                LoginClienteScreen(
+                    onSuccesfuloginCliente = {
+                        val user = auth.currentUser
+                        user?.let {
+                            db.collection("usuarios").document(it.uid)
+                                .set(mapOf("rol" to "cliente"))
+                        }
+                        navController.navigate("menuScreen") { popUpTo("startApp") { inclusive = false}}
+                    },
+                    onClickBackLoginCliente = { navController.popBackStack() }
+                )
+            }
+
+            // Login Restaurante
+            composable("loginRestaurante") {
+                LoginRestauranteScreen(
+                    onSuccesfuloginRestaurante = {
+                        val user = auth.currentUser
+                        user?.let {
+                            db.collection("usuarios").document(it.uid)
+                                .set(mapOf("rol" to "restaurante"))
+                        }
+                        navController.navigate("menuRestaurante") {popUpTo("startApp") { inclusive = false}}
+                    },
+                    onClickBackloginRestaurante = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate("startApp") {
+                            popUpTo("loginRestaurante") { inclusive = true}
+                        }
+                    }
 
 
-        //  Pantalla 1 (productos / menú)
-        composable("menuScreen") {
-            MenuScreen(navController = myNavController)
-        }
+                )
+            }
 
-        //  Registro restaurante
-        composable("registerRestaurante") {
-            RegisterRestaurante(
-                onSuccesfuRegisterCliente = { myNavController.navigate("loginRestaurante") { popUpTo(0) } },
-                onClickBackRegisterRestaurante = { myNavController.popBackStack() }
-            )
-        }
+            // Pantallas Cliente
+            composable("menuScreen") { MenuScreen(navController) }
+            composable("profileCliente") { ProfileClienteScreen(navController) }
+            composable("mapaCliente") { MapaScreen(navController) }
+            composable("chatCliente") { ChatScreen(navController) }
+            composable("walletCliente") { ProductosScreen(navController) }
+            composable("settingsCliente") {
+                EncabezadoConfiguracion(
+                    onClickBackConfig = {
+                        navController.navigate("menuScreen") {
+                            popUpTo("menuScreen") { inclusive = true }
+                        }
+                    }
+                )
+            }
 
-        //  Alias / rutas adicionales
-        composable(route = "pantalla1") { MenuScreen(myNavController) }
-        composable(route = "profileCliente") { ProfileClienteScreen(myNavController) }
-        composable(route = "mapaCliente") { MapaScreen(myNavController) }
-        composable(route = "chatCliente") { ChatScreen(myNavController) }
-        composable(route = "walletCliente") { ProductosScreen(myNavController) }
-
-        composable("chat") {
-            ChatScreen(navController = myNavController)
-        }
-
-        composable("clientsWaiting") {
-            ClientsWaitingScreen(navController = myNavController)
-        }
-
-        composable("qrScreen") {
-            QRScreen(navController = myNavController)
-        }
-
-        composable("menuRestaurante") {//ESTO GUE LO QUE INTENTE PROBABLEMENTE  MAL Att: edson
-            MenuRestauranteScreen(navController = myNavController,
-                onClickLogout = {
-                    myNavController.navigate("loginRestaurante") {
+            // Pantallas Restaurante
+            composable("menuRestaurante") {
+                MenuRestauranteScreen(
+                    navController = navController,
+                    onClickLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                            navController.navigate("loginRestaurante") { // nombre correcto
                         popUpTo("menuRestaurante") { inclusive = true }
+                        }
+                    }// Cierra la sesión de Firebase
 
-                    }
+
+
+                )
+            }
+
+            composable("menuRestauranteScreen") { MenuRestauranteScreen(navController = navController) }
+            composable("scanRestaurante") { QRScreen(navController = navController)}
+            composable("profileRestaurante") { ClientsWaitingScreen(navController = navController)}
+            composable("chatRestaurante") { ChatRestauranteScreen(navController = navController)}
+
+            composable("editarMenu") {
+                EditarMenuScreen(navController = navController)}
+            composable("agregarProducto") {
+                AgregarProductoScreen(navController = navController)
                 }
-            )
+            }
         }
+    }
 
-        composable(route = "menuRestauranteScreen") { MenuRestauranteScreen(myNavController) }
 
-        composable("menuRestauranteScreen") { MenuRestauranteScreen(navController = myNavController) }
-        composable("scanRestaurante") { QRScreen(navController = myNavController)}
-        composable("profileRestaurante") { ClientsWaitingScreen(navController = myNavController)}
-        composable("chatRestaurante") { ChatRestauranteScreen(navController = myNavController)}
-
-        composable("editarMenu") {
-            EditarMenuScreen(navController = myNavController)}
-        composable("agregarProducto") {
-            AgregarProductoScreen(navController = myNavController)
-        }
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
