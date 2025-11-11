@@ -53,6 +53,8 @@ fun EditarMenuScreen(navController: NavController) {
     var mensaje by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
 
+
+
     // ===== Cargar datos actuales =====
     LaunchedEffect(uid) {
         if (uid != null) {
@@ -209,35 +211,7 @@ fun EditarMenuScreen(navController: NavController) {
                         supportingText = { if (nombreProductoError.isNotEmpty()) Text(nombreProductoError, color = Color.Red) }
                     )
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "Dirección",
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 48.dp),
-                        textAlign = TextAlign.Start,
-                        style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily.SansSerif, color = Color(0xFF863939), fontWeight = FontWeight.Bold)
-                    )
-                    Spacer(modifier = Modifier.height(1.dp))
 
-                    OutlinedTextField(
-                        value = direccion,
-                        onValueChange = { direccion = it },
-                        placeholder = { Text("Dirección", color = Color(0xFFCB6363)) }, // texto dentro
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            capitalization = KeyboardCapitalization.None,
-                            autoCorrect = false
-                        ),
-                        shape = RoundedCornerShape(50.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color(0xFF641717),
-                            focusedBorderColor = Color(0xFF641717),
-                            cursorColor = Color(0xFF641717),
-                            unfocusedContainerColor = Color(0xFFFFFFFF),
-                            focusedContainerColor = Color(0xFFFFFFFF),
-                            unfocusedBorderColor = Color.Gray,
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
                         text = "Horario de atención",
@@ -298,7 +272,9 @@ fun EditarMenuScreen(navController: NavController) {
 
                     Button(
                         onClick = {
-                            if (uid != null) {
+                            if (inputnombreProducto.isBlank() || horario.isBlank() || inputprecio.isBlank()) {
+                            mensaje = "Por favor complete todos los campos antes de guardar."
+                        } else if(uid != null) {
                                 val updates = hashMapOf(
                                     "nombreRestaurante" to nombreRestaurante,
                                     "direccion" to direccion,
