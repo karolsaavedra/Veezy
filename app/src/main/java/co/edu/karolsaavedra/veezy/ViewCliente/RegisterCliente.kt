@@ -57,7 +57,7 @@ fun RegisterCliente(
     var inputEmailRegister by remember { mutableStateOf("") }
     var inputpassworRegister by remember { mutableStateOf("") }
     var inputConfirmpasswordRegister by remember { mutableStateOf("") }
-    var inputHorarioAtencion by remember { mutableStateOf("") }
+
 
     var nameError by remember { mutableStateOf("") }
     var apellidoError by remember { mutableStateOf("") }

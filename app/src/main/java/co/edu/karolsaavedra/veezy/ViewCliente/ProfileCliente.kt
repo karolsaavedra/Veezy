@@ -160,7 +160,7 @@ fun ProfileClienteScreen(
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // 🔹 Botón Cerrar sesión
+                    // Botón Cerrar sesión
                     Button(
                         onClick = {
                             FirebaseAuth.getInstance().signOut()
@@ -189,7 +189,7 @@ fun ProfileClienteScreen(
                 }
             }
 
-            // 🔹 Barra inferior
+            // Barra inferior
             BottomBar(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 navController = navController,

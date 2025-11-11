@@ -15,10 +15,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +47,49 @@ import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun MenuRestauranteScreen(navController: NavHostController,
                           onClickLogout: () -> Unit = {}
 ) {
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
+    val db = FirebaseFirestore.getInstance()
+
+    var nombreRestaurante by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Cargar nombre del restaurante desde Firestore
+    LaunchedEffect(user) {
+        if (user != null) {
+            db.collection("restaurantes").document(user.uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        nombreRestaurante = doc.getString("nombreRestaurante") ?: "Mi Restaurante"
+                    } else {
+                        nombreRestaurante = "Restaurante"
+                    }
+                    isLoading = false
+                }
+                .addOnFailureListener {
+                    nombreRestaurante = "Error al cargar"
+                    isLoading = false
+                }
+        } else {
+            isLoading = false
+        }
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color.White)
+        }
+        return
+    }
+
+
     Scaffold(
         containerColor = Color(0xFF641717),
         bottomBar = {
@@ -129,7 +169,7 @@ fun MenuRestauranteScreen(navController: NavHostController,
 
                 // Título
                 Text(
-                    text = "Nombre restaurante",
+                    text = nombreRestaurante,
                     style = TextStyle(
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
