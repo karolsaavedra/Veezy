@@ -13,7 +13,7 @@ fun validateEmail (email: String):Pair <Boolean, String>{ //pair, retornar los d
         !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->Pair(false, "El correo es invalido")
         email.endsWith("@test.com") -> Pair(false, "Ese email no es corporativo")  //verificar que el email termine en test.com, o en el que se desee
         else -> {
-            Pair (true, "") //todo quedó bien
+            Pair (true, "")
         }
     }
 

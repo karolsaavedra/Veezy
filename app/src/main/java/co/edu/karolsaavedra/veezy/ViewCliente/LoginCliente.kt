@@ -314,6 +314,7 @@ fun LoginClienteScreen(
                         auth.signInWithEmailAndPassword(inputEmail, inputPasswordCliente)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
+
                                     onSuccesfuloginCliente()
                                 } else {
                                     loginErrorCliente = when (task.exception) {

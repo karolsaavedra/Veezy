@@ -51,6 +51,17 @@ fun validateDireccion(direccion: String): Pair<Boolean, String> {
     }
 }
 
+fun validateHorarioRestaurante (horarioRestaurante: String):Pair <Boolean, String>{
+    val regex = Regex("^[A-Za-zÁÉÍÓÚáéíóúÑñra0-9#°\\-\\.\\s]+$")
+    return when{
+        horarioRestaurante.isEmpty() -> Pair(false, "El horario es requerido.")
+        horarioRestaurante.length < 2 -> Pair(false, "El horario debe tener al menos 2 caracteres.")
+        !regex.matches(horarioRestaurante) -> Pair(false, "El horario contiene caracteres no válidos.")
+        else -> Pair(true, "")
+        }
+    }
+
+
 
 fun validateConfirmPasswordRestaurante (passwordRestaurante: String, confirmpasswordRestaurante: String): Pair <Boolean, String>{
     return  when{

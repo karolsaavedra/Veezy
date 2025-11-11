@@ -19,30 +19,45 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun NavigationApp() {
     val navController = rememberNavController()
-    val auth = FirebaseAuth.getInstance()
-    val db = FirebaseFirestore.getInstance()
+    val auth = remember { FirebaseAuth.getInstance() }
+    val db = remember { FirebaseFirestore.getInstance() }
 
     // Se inicializa como null para saber cuándo mostrar el NavHost
     var startDestination by remember { mutableStateOf<String?>(null) }
 
-    // Verificar si el usuario ya está autenticado y cuál es su rol
+    // Detecta si el usuario autenticado está en clientes o restaurantes
     LaunchedEffect(Unit) {
         val user = auth.currentUser
-        if (user != null) {
-            db.collection("usuarios").document(user.uid).get()
-                .addOnSuccessListener { doc ->
-                    startDestination = when (doc.getString("rol")) {
-                        "cliente" -> "menuScreen"
-                        "restaurante" -> "menuRestaurante"
-                        else -> "chooseRole"
-                    }
-                }
-                .addOnFailureListener {
-                    startDestination = "chooseRole"
-                }
-        } else {
+        if (user == null) {
             startDestination = "startApp"
+            return@LaunchedEffect
         }
+
+        val uid = user.uid
+        val clientesRef = db.collection("clientes").document(uid)
+        val restaurantesRef = db.collection("restaurantes").document(uid)
+
+        clientesRef.get()
+            .addOnSuccessListener { cliente ->
+                if (cliente.exists()) {
+                    startDestination = "menuScreen" // Cliente
+                } else {
+                    restaurantesRef.get()
+                        .addOnSuccessListener { rest ->
+                            startDestination = if (rest.exists()) {
+                                "menuRestaurante" // Restaurante
+                            } else {
+                                "chooseRole"       // No tiene perfil aún
+                            }
+                        }
+                        .addOnFailureListener {
+                            startDestination = "chooseRole"
+                        }
+                }
+            }
+            .addOnFailureListener {
+                startDestination = "chooseRole"
+            }
     }
 
     // Mientras no se haya determinado el destino inicial, muestra una pantalla de carga
@@ -53,7 +68,7 @@ fun NavigationApp() {
             navController = navController,
             startDestination = startDestination!!
         ) {
-            // Pantalla inicial
+            // -------- Pantalla inicial --------
             composable("startApp") {
                 StartScreen(
                     onClickRegisterCliente = { navController.navigate("registerCliente") },
@@ -62,23 +77,35 @@ fun NavigationApp() {
                 )
             }
 
-            // Registro cliente
+            // -------- Registro cliente --------
             composable("registerCliente") {
                 RegisterCliente(
-                    onSuccesfuRegisterCliente = { navController.navigate("loginCliente") { popUpTo(0) } },
+                    onSuccesfuRegisterCliente = {
+                        // Va al home de cliente
+                        navController.navigate("menuScreen") {
+                            popUpTo("startApp") { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
                     onClickBackRegister = { navController.popBackStack() }
                 )
             }
 
-            // Registro restaurante
+            // -------- Registro restaurante --------
             composable("registerRestaurante") {
                 RegisterRestaurante(
-                    onSuccesfuRegisterCliente = { navController.navigate("loginRestaurante") { popUpTo(0) } },
+                    onSuccesfuRegisterRestaurante = {
+                        // Va al home de restaurante
+                        navController.navigate("menuRestaurante") {
+                            popUpTo("startApp") { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
                     onClickBackRegisterRestaurante = { navController.popBackStack() }
                 )
             }
 
-            // Elección de rol
+            // -------- Elección de rol --------
             composable("chooseRole") {
                 ChooseRoleScreen(
                     onClickCliente = { navController.navigate("loginCliente") },
@@ -87,44 +114,42 @@ fun NavigationApp() {
                 )
             }
 
-            // Login Cliente
+            // -------- Login Cliente --------
             composable("loginCliente") {
                 LoginClienteScreen(
                     onSuccesfuloginCliente = {
-                        val user = auth.currentUser
-                        user?.let {
-                            db.collection("usuarios").document(it.uid)
-                                .set(mapOf("rol" to "cliente"))
+                        // Si ya existe perfil en /clientes/{uid}, el startDestination lo resolverá en reinicios.
+                        // Aquí simplemente navega al home de cliente.
+                        navController.navigate("menuScreen") {
+                            popUpTo("startApp") { inclusive = false }
+                            launchSingleTop = true
                         }
-                        navController.navigate("menuScreen") { popUpTo("startApp") { inclusive = false}}
                     },
                     onClickBackLoginCliente = { navController.popBackStack() }
                 )
             }
 
-            // Login Restaurante
+            // -------- Login Restaurante --------
             composable("loginRestaurante") {
                 LoginRestauranteScreen(
                     onSuccesfuloginRestaurante = {
-                        val user = auth.currentUser
-                        user?.let {
-                            db.collection("usuarios").document(it.uid)
-                                .set(mapOf("rol" to "restaurante"))
+                        // Igual que cliente: navega al home de restaurante.
+                        navController.navigate("menuRestaurante") {
+                            popUpTo("startApp") { inclusive = false }
+                            launchSingleTop = true
                         }
-                        navController.navigate("menuRestaurante") {popUpTo("startApp") { inclusive = false}}
                     },
                     onClickBackloginRestaurante = {
                         FirebaseAuth.getInstance().signOut()
                         navController.navigate("startApp") {
-                            popUpTo("loginRestaurante") { inclusive = true}
+                            popUpTo("loginRestaurante") { inclusive = true }
+                            launchSingleTop = true
                         }
                     }
-
-
                 )
             }
 
-            // Pantallas Cliente
+            // ============== Pantallas Cliente ==============
             composable("menuScreen") { MenuScreen(navController) }
             composable("profileCliente") { ProfileClienteScreen(navController) }
             composable("mapaCliente") { MapaScreen(navController) }
@@ -135,41 +160,36 @@ fun NavigationApp() {
                     onClickBackConfig = {
                         navController.navigate("menuScreen") {
                             popUpTo("menuScreen") { inclusive = true }
+                            launchSingleTop = true
                         }
                     }
                 )
             }
 
-            // Pantallas Restaurante
+            // ============== Pantallas Restaurante ==============
             composable("menuRestaurante") {
                 MenuRestauranteScreen(
                     navController = navController,
                     onClickLogout = {
                         FirebaseAuth.getInstance().signOut()
-                            navController.navigate("loginRestaurante") { // nombre correcto
-                        popUpTo("menuRestaurante") { inclusive = true }
+                        navController.navigate("loginRestaurante") {
+                            popUpTo("menuRestaurante") { inclusive = true }
+                            launchSingleTop = true
                         }
-                    }// Cierra la sesión de Firebase
-
-
-
+                    }
                 )
             }
 
+            // (si la necesitas como otra ruta aparte)
             composable("menuRestauranteScreen") { MenuRestauranteScreen(navController = navController) }
-            composable("scanRestaurante") { QRScreen(navController = navController)}
-            composable("profileRestaurante") { ClientsWaitingScreen(navController = navController)}
-            composable("chatRestaurante") { ChatRestauranteScreen(navController = navController)}
-
-            composable("editarMenu") {
-                EditarMenuScreen(navController = navController)}
-            composable("agregarProducto") {
-                AgregarProductoScreen(navController = navController)
-                }
-            }
+            composable("scanRestaurante") { QRScreen(navController = navController) }
+            composable("profileRestaurante") { ClientsWaitingScreen(navController = navController) }
+            composable("chatRestaurante") { ChatRestauranteScreen(navController = navController) }
+            composable("editarMenu") { EditarMenuScreen(navController = navController) }
+            composable("agregarProducto") { AgregarProductoScreen(navController = navController) }
         }
     }
-
+}
 
 @Composable
 fun LoadingScreen() {
@@ -177,7 +197,10 @@ fun LoadingScreen() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator()
-        Spacer(modifier = Modifier.height(8.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Cargando…")
+        }
     }
 }

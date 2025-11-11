@@ -22,9 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun ProfileClienteScreen(
@@ -34,16 +33,42 @@ fun ProfileClienteScreen(
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
 
-    val auth = Firebase.auth
+    val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
+    val db = FirebaseFirestore.getInstance()
 
-    // Si el usuario está autenticado, se muestran sus datos
+    //  Cargar datos desde Firestore
     LaunchedEffect(user) {
-        user?.let {
-            nombre = it.displayName ?: ""
-            correo = it.email ?: ""
+        if (user != null) {
+            val uid = user.uid
+            db.collection("clientes").document(uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        nombre = doc.getString("nombre") ?: ""
+                        apellido = doc.getString("apellido") ?: ""
+                        correo = doc.getString("email") ?: user.email.orEmpty()
+                    }
+                    isLoading = false
+                }
+                .addOnFailureListener {
+                    isLoading = false
+                }
+        } else {
+            isLoading = false
         }
+    }
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     Scaffold(
@@ -61,7 +86,7 @@ fun ProfileClienteScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                // 🔹 ENCABEZADO
+                //  Encabezado superior con avatar
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -71,57 +96,6 @@ fun ProfileClienteScreen(
                             shape = RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp)
                         )
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Aros decorativos
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .offset(x = (-180).dp, y = (-80).dp)
-                                .border(
-                                    width = 3.dp,
-                                    color = Color(0xFFA979A7),
-                                    shape = CircleShape
-                                )
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .size(90.dp)
-                                .offset(x = (180).dp, y = (30).dp)
-                                .border(
-                                    width = 2.dp,
-                                    color = Color(0xFFA979A7),
-                                    shape = CircleShape
-                                )
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .size(90.dp)
-                                .offset(x = (-170).dp, y = (-70).dp)
-                                .border(
-                                    width = 2.dp,
-                                    color = Color(0xFFA979A7),
-                                    shape = CircleShape
-                                )
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .offset(x = (177).dp, y = (20).dp)
-                                .border(
-                                    width = 3.dp,
-                                    color = Color(0xFFA979A7),
-                                    shape = CircleShape
-                                )
-                        )
-                    }
-
-                    //  Contenido central
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -141,64 +115,59 @@ fun ProfileClienteScreen(
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
-
                         Text(
                             text = nombre.ifEmpty { "Usuario" },
                             fontWeight = FontWeight.Bold,
                             fontSize = 22.sp,
                             color = Color.White
                         )
-
                         Text(
-                            text = "Reservas hechas",
+                            text = correo.ifEmpty { "correo@ejemplo.com" },
                             fontSize = 15.sp,
                             color = Color.White.copy(alpha = 0.8f)
-                        )
-
-                        Text(
-                            text = "10",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = Color.White
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                //  INFORMACIÓN DEL USUARIO
+                //  Información del cliente
                 Column(modifier = Modifier.padding(horizontal = 30.dp)) {
+
                     OutlinedTextField(
                         value = nombre,
-                        onValueChange = { nombre = it },
+                        onValueChange = { },
                         label = { Text("Nombre") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true
                     )
 
                     OutlinedTextField(
                         value = apellido,
-                        onValueChange = { apellido = it },
+                        onValueChange = { },
                         label = { Text("Apellido") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true
                     )
 
                     OutlinedTextField(
                         value = correo,
-                        onValueChange = { correo = it },
+                        onValueChange = { },
                         label = { Text("Correo") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    //  Botón "Cerrar sesión"
+                    // 🔹 Botón Cerrar sesión
                     Button(
                         onClick = {
-                            FirebaseAuth.getInstance().signOut() // Cierra la sesión de Firebase
-                            navController.navigate("loginCliente") {  // nombre  de la ruta en el NavHost
-                                popUpTo("menuScreen") { inclusive = true } // elimina pantallas previas
-                                }
-                                  },
+                            FirebaseAuth.getInstance().signOut()
+                            navController.navigate("loginCliente") {
+                                popUpTo("menuScreen") { inclusive = true }
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD99C00)
                         ),
@@ -220,32 +189,12 @@ fun ProfileClienteScreen(
                 }
             }
 
-            // Barra inferior
+            // 🔹 Barra inferior
             BottomBar(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 navController = navController,
                 isBackgroundWine = false
             )
-        }
-    }
-
-    @Composable
-    fun InfoItem(label: String, value: String) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = label,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color(0xFF641717)
-            )
-            Text(
-                text = value,
-                fontSize = 16.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Divider(color = Color(0xFF641717).copy(alpha = 0.3f), thickness = 1.dp)
-            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
