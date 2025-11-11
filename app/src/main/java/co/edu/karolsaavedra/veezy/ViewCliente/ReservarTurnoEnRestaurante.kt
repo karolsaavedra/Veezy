@@ -76,7 +76,7 @@ fun PaginaReservas(
                 .padding(paddingValues)
                 .background(Color(0xFFFAF0F0))
         ) {
-            // 🔹 Encabezado burdeos
+            //  Encabezado burdeos
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,7 +145,7 @@ fun PaginaReservas(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔹 Selector de tipo de pedido
+                // Selector de tipo de pedido
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -185,7 +185,7 @@ fun PaginaReservas(
                 val fondoItems =
                     if (opcionSeleccionada == "Restaurante") Color(0xFFFDECEC) else Color(0xFFFFF6E0)
 
-                // 🔹 Lista de productos
+                //  Lista de productos
                 ItemContador("Personas", personas, fondoItems,
                     onSumar = { personas++ },
                     onRestar = { if (personas > 0) personas-- }
@@ -201,7 +201,7 @@ fun PaginaReservas(
 
                 Spacer(modifier = Modifier.height(170.dp))
 
-                // 🔹 Botones inferiores
+                //Botones inferiores
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -233,7 +233,7 @@ fun PaginaReservas(
                 Spacer(modifier = Modifier.height(80.dp))
             }
 
-            // 🔹 Imagen hamburguesa sobrepuesta
+            //Imagen hamburguesa sobrepuesta
             Image(
                 painter = painterResource(id = R.drawable.hamburguesa),
                 contentDescription = "Hamburguesa",

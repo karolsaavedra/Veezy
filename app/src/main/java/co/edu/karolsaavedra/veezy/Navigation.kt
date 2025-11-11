@@ -13,6 +13,7 @@ import co.edu.karolsaavedra.veezy.ViewCliente.*
 import co.edu.karolsaavedra.veezy.ViewGeneral.*
 import co.edu.karolsaavedra.veezy.ViewRestaurante.*
 import co.edu.karolsaavedra.veezy.menu.*
+import co.edu.karolsaavedra.veezy.producto.InfoProducto
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -125,7 +126,10 @@ fun NavigationApp() {
                             launchSingleTop = true
                         }
                     },
-                    onClickBackLoginCliente = { navController.popBackStack() }
+                    onClickBackLoginCliente = {  FirebaseAuth.getInstance().signOut()
+                        navController.navigate("startApp") {
+                            popUpTo("loginCliente") { inclusive = true }
+                            launchSingleTop = true}}
                 )
             }
 
@@ -187,9 +191,14 @@ fun NavigationApp() {
             composable("chatRestaurante") { ChatRestauranteScreen(navController = navController) }
             composable("editarMenu") { EditarMenuScreen(navController = navController) }
             composable("agregarProducto") { AgregarProductoScreen(navController = navController) }
+
+            composable("Burgerinfo") { InfoProducto(navController = navController) }
+
         }
     }
 }
+
+
 
 @Composable
 fun LoadingScreen() {

@@ -196,7 +196,7 @@ fun MenuRestauranteScreen(navController: NavHostController,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(burgerList) { burger ->
-                        BurgerCard(burger = burger)
+                        BurgerCardR(burger = burger)
                     }
 
                     //  Card vacía para agregar nuevo producto

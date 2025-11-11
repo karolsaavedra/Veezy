@@ -57,6 +57,7 @@ fun RegisterCliente(
     var inputEmailRegister by remember { mutableStateOf("") }
     var inputpassworRegister by remember { mutableStateOf("") }
     var inputConfirmpasswordRegister by remember { mutableStateOf("") }
+    var TurnoCliente by remember { mutableStateOf("") }
 
 
     var nameError by remember { mutableStateOf("") }
@@ -70,6 +71,9 @@ fun RegisterCliente(
     val activity = LocalView.current.context as Activity
     val auth = Firebase.auth
     val db = remember { FirebaseFirestore.getInstance() }
+
+
+
 
     Scaffold(
         topBar = {
@@ -339,7 +343,8 @@ fun RegisterCliente(
                                     "apellido" to inputapellido,
                                     "email" to inputEmailRegister,
                                     "rol" to "cliente",
-                                    "createdAt" to Timestamp.now()
+                                    "createdAt" to Timestamp.now(),
+                                    "turno" to TurnoCliente
                                 )
 
                                 db.collection("clientes").document(uid)

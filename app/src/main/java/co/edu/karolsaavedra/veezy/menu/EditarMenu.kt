@@ -223,7 +223,7 @@ fun EditarMenuScreen(navController: NavController) {
                     OutlinedTextField(
                         value = horario,
                         onValueChange = { horario = it },
-                        placeholder = { Text("Horario de atención", color = Color(0xFFCB6363)) }, // 🔹 texto dentro editable
+                        placeholder = { Text("Horario de atención", color = Color(0xFFCB6363)) }, //  texto dentro editable
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             capitalization = KeyboardCapitalization.None,
@@ -251,7 +251,7 @@ fun EditarMenuScreen(navController: NavController) {
                     OutlinedTextField(
                         value = inputprecio,
                         onValueChange = { inputprecio = it },
-                        placeholder = { Text("Precio", color = Color(0xFFD4A017)) }, // 🔹 texto dentro, editable
+                        placeholder = { Text("Precio", color = Color(0xFFD4A017)) }, // texto dentro, editable
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number, // tipo numérico
                             capitalization = KeyboardCapitalization.None,

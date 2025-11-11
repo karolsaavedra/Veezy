@@ -25,14 +25,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.menu.BurgerInfo
+import co.edu.karolsaavedra.veezy.menu.MenuScreen
 import co.edu.karolsaavedra.veezy.menu.burgerList
 import com.google.android.gms.maps.model.LatLng
 
-@Preview(showBackground = true)
+
 @Composable
-fun InfoProducto() {
+fun InfoProducto(navController: NavController) {
 
 
     var isFavorite by remember { mutableStateOf(false) }
@@ -148,4 +151,12 @@ fun InfoProducto() {
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InfopProductopreview() {
+    val navController = rememberNavController()
+    BurgerInfo(burger = burgerList[0])
+    InfoProducto(navController = navController)
 }

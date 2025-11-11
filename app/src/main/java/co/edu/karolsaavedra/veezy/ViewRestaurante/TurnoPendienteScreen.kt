@@ -11,6 +11,11 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,9 +29,52 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun TurnoPendienteScreen(navController: NavController) { // Se agrega navController
+
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val user = auth.currentUser
+
+    // Agregado: variables para mostrar datos del cliente
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Agregado: obtener datos del cliente desde Firestore
+    LaunchedEffect(user) {
+        user?.let {
+            db.collection("clientes").document(it.uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        nombre = doc.getString("nombre") ?: ""
+                        apellido = doc.getString("apellido") ?: ""
+                        email = doc.getString("email") ?: ""
+                    }
+                    isLoading = false
+                }
+                .addOnFailureListener {
+                    isLoading = false
+                }
+        }
+    }
+
+    // Pantalla de carga mientras llegan los datos
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF641717))
+        }
+        return
+    }
+
+
+
+
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
     ) { paddingValues ->
@@ -107,11 +155,11 @@ fun TurnoPendienteScreen(navController: NavController) { // Se agrega navControl
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔹 Card con los datos
+                // Card con los datos
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF4F4F4), RoundedCornerShape(16.dp))
+                        .background(Color(0x85D9D9D9), RoundedCornerShape(16.dp))
                         .padding(16.dp)
                 ) {
                     Column(
@@ -146,11 +194,13 @@ fun TurnoPendienteScreen(navController: NavController) { // Se agrega navControl
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        InfoRow(label = "Nombre:", value = "Karol Saavedra")
-                        InfoRow(label = "Cantidad:", value = "02")
+                        InfoRow(label = "Nombre:", value = nombre)
+                        InfoRow(label = "Apellido:", value = apellido)
+                        InfoRow(label = "Correo:", value = email)
                         InfoRow(label = "Tipo de pedido:", value = "Para llevar")
                         InfoRow(label = "Turno:", value = "11")
                         InfoRow(label = "Hora:", value = "6 PM")
+
 
                         Spacer(modifier = Modifier.height(20.dp))
 
