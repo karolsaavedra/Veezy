@@ -61,6 +61,7 @@ fun RegisterRestaurante(
     var inputPassword by remember { mutableStateOf("") }
     var inputPasswordConfirm by remember { mutableStateOf("") }
     var inputHorarioRestaurante by remember { mutableStateOf("") }
+    var productosRestaurante by remember { mutableStateOf("") }
 
     var nombreError by remember { mutableStateOf("") }
     var direccionError by remember { mutableStateOf("") }
@@ -334,6 +335,7 @@ fun RegisterRestaurante(
                     val okHorario = validateHorarioRestaurante(inputHorarioRestaurante).first
 
 
+
                     nombreError = validateNameRestaurante(inputNombreRestaurante).second
                     direccionError = validateDireccion(inputDireccion).second
                     emailError = validateEmailRestaurante(inputEmail).second
@@ -370,7 +372,7 @@ fun RegisterRestaurante(
                                     "rol" to "restaurante",
                                     "createdAt" to Timestamp.now(),
                                     "horario" to inputHorarioRestaurante,
-                                    "productos" to ""
+                                    "productos" to productosRestaurante
                                 )
 
                                 db.collection("restaurantes").document(uid)
