@@ -35,7 +35,7 @@ import com.google.android.gms.maps.model.LatLng
 
 
 @Composable
-fun InfoProducto(navController: NavController) {
+fun InfoProducto(navController: NavController, restauranteNombre: String) {
 
 
     var isFavorite by remember { mutableStateOf(false) }
@@ -108,7 +108,8 @@ fun InfoProducto(navController: NavController) {
         ) {
             // Botón "Turno"
             Button(
-                onClick = { navController.navigate("ReservarTurnoRestaurante") },
+                // Cuando se presiona, se pasa también el nombre del restaurante
+                onClick = { navController.navigate("ReservarTurnoRestaurante/${restauranteNombre}") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFCC00)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
@@ -158,5 +159,5 @@ fun InfoProducto(navController: NavController) {
 fun InfopProductopreview() {
     val navController = rememberNavController()
     BurgerInfo(burger = burgerList[0])
-    InfoProducto(navController = navController)
+    InfoProducto(navController = navController, restauranteNombre = "")
 }

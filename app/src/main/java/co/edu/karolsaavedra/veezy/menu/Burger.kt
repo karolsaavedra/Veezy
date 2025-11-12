@@ -7,7 +7,7 @@ data class Burger(
     val restaurant: String,
     val hours: String,
     val price: String,
-    val imageRes: Int
+    val imageUrl: Int
 )
 
 val burgerList = listOf(

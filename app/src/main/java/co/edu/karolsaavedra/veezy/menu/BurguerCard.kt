@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.karolsaavedra.veezy.R
 
 
 @Composable
@@ -41,7 +42,7 @@ fun BurgerCard(burger: Burger, onClick: () -> Unit) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Image(
-                painter = painterResource(id = burger.imageRes),
+                painter = painterResource(id = R.drawable.burger1),
                 contentDescription = burger.name,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -109,7 +110,7 @@ fun BurgerCardR(burger: Burger) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Image(
-                painter = painterResource(id = burger.imageRes),
+                painter = painterResource(id = R.drawable.burger1),
                 contentDescription = burger.name,
                 modifier = Modifier
                     .fillMaxWidth()

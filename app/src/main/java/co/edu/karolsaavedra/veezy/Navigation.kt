@@ -192,11 +192,18 @@ fun NavigationApp() {
             composable("editarMenu") { EditarMenuScreen(navController = navController) }
             composable("agregarProducto") { AgregarProductoScreen(navController = navController) }
 
-            composable("Burgerinfo") { InfoProducto(navController = navController) }
+            composable("Burgerinfo/{restauranteNombre}") { backStackEntry ->
+                val restauranteNombre = backStackEntry.arguments?.getString("restauranteNombre") ?: ""
+                InfoProducto(navController = navController, restauranteNombre = restauranteNombre)
+            }
 
-            composable("ReservarTurnoRestaurante") {
-                PaginaReservas(navController = navController,
+            composable("ReservarTurnoRestaurante/{restauranteNombre}") { backStackEntry ->
+                val restauranteNombre = backStackEntry.arguments?.getString("restauranteNombre") ?: "Desconocido"
+                PaginaReservas(
+                    navController = navController,
                     onClickParaLlevar = { navController.navigate("ReservarTurnoParallevar") },
+                    //pasa el nombre del restaurante
+                    nombreRestaurante = restauranteNombre
                 )
             }
             composable("ReservarTurnoParallevar") {
@@ -206,7 +213,6 @@ fun NavigationApp() {
 
                 )
             }
-            composable("InfoProducto") { InfoProducto(navController = navController) }
 
 
             composable("TurnoGenerado") { TurnoScreen(navController = navController) }

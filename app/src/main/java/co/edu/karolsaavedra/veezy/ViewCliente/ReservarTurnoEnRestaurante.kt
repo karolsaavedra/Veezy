@@ -59,7 +59,9 @@ import com.google.firebase.firestore.Query
 fun PaginaReservas(
     navController: NavController? = null, // Parámetro opcional para evitar error en Preview
     onClickParaLlevar: () -> Unit = {},
-    onClickRestaurante: () -> Unit = {}
+    onClickRestaurante: () -> Unit = {},
+    nombreRestaurante: String = "Desconocido",
+
 ) {
     var personasRest by remember { mutableStateOf(0) }
     var hamburguesasRest by remember { mutableStateOf(0) }
@@ -271,88 +273,76 @@ fun PaginaReservas(
                                 return@Button
                             }
 
-                            // Si tienes un uid real del restaurante, úsalo aquí.
-                            // Actualmente en tu código usas un id fijo; cámbialo por el real si lo tienes.
-                            val restauranteId = if (opcionSeleccionada == "Restaurante") "restauranteABC" else "paraLlevarXYZ"
+                            val restauranteNombreFinal = nombreRestaurante.ifEmpty { "Desconocido" }
 
-                            // Primero intentamos obtener el nombre del restaurante (si existe un documento con ese id)
-                            db.collection("restaurantes").document(restauranteId).get()
-                                .addOnSuccessListener { restaDoc ->
-                                    val nombreRestaurante = restaDoc?.getString("nombreRestaurante") ?: restauranteId
+                            /// buscar el último turno por nombre de restaurante
+                            db.collection("turnos")
+                                .whereEqualTo("restauranteNombre", restauranteNombreFinal)
+                                .orderBy("numero", Query.Direction.DESCENDING)
+                                .limit(1)
+                                .get()
+                                .addOnSuccessListener { snapshot ->
+                                    val ultimoTurno: Long = if (!snapshot.isEmpty)
+                                        snapshot.documents[0].getLong("numero") ?: 0L
+                                    else 0L
 
-                                    // Luego buscamos el último turno para ese restaurante por nombre (o por id si prefieres)
+                                    val nuevoTurnoLong: Long = ultimoTurno + 1L
+                                    val nombreRestauranteFinal = nombreRestaurante.ifEmpty { "Desconocido" }
+
+                                    //crear datos del turno incluyendo el nombre del restaurante
+                                    val turnoData = hashMapOf(
+                                        "numero" to nuevoTurnoLong,
+                                        "restauranteNombre" to restauranteNombreFinal,
+                                        "tipo" to opcionSeleccionada,
+                                        "clienteUid" to clienteUid,
+                                        "timestamp" to com.google.firebase.Timestamp.now()
+                                    )
+
+                                    // campos adicionales según tipo
+                                    if (opcionSeleccionada == "Restaurante") {
+                                        turnoData["personas"] = personasRest
+                                        turnoData["hamburguesas"] = hamburguesasRest
+                                        turnoData["papas"] = papasRest
+                                    } else {
+                                        turnoData["hamburguesas"] = hamburguesasLlevar
+                                        turnoData["papas"] = papasLlevar
+                                    }
+
+                                    // guardar en Firestore
                                     db.collection("turnos")
-                                        .whereEqualTo("restauranteNombre", nombreRestaurante)
-                                        .orderBy("numero", Query.Direction.DESCENDING)
-                                        .limit(1)
-                                        .get()
-                                        .addOnSuccessListener { snapshot ->
-                                            // ultimoTurno como Long (seguro)
-                                            val ultimoTurno: Long = if (!snapshot.isEmpty)
-                                                snapshot.documents[0].getLong("numero") ?: 0L
-                                            else 0L
-
-                                            val nuevoTurnoLong: Long = ultimoTurno + 1L
-
-                                            // Armo los datos del turno (guardo numero como Long para evitar problemas)
-                                            val turnoData = hashMapOf(
-                                                "numero" to nuevoTurnoLong,
-                                                "restauranteId" to restauranteId,
-                                                "restauranteNombre" to nombreRestaurante,
-                                                "tipo" to opcionSeleccionada,
-                                                "clienteUid" to clienteUid,
-                                                "timestamp" to com.google.firebase.Timestamp.now()
+                                        .add(turnoData)
+                                        .addOnSuccessListener { turnoRef ->
+                                            val clienteUpdates = mapOf(
+                                                "turnoNumero" to nuevoTurnoLong,
+                                                "turnoRefId" to turnoRef.id,
+                                                "turnoRestaurante" to restauranteNombreFinal
                                             )
 
-                                            // Campos adicionales según tipo
-                                            if (opcionSeleccionada == "Restaurante") {
-                                                turnoData["personas"] = personasRest
-                                                turnoData["hamburguesas"] = hamburguesasRest
-                                                turnoData["papas"] = papasRest
-                                            } else {
-                                                turnoData["hamburguesas"] = hamburguesasLlevar
-                                                turnoData["papas"] = papasLlevar
-                                            }
-
-                                            // Guardar en la colección "turnos"
-                                            db.collection("turnos")
-                                                .add(turnoData)
-                                                .addOnSuccessListener { turnoRef ->
-                                                    // Actualizar documento del cliente con referencia o número según prefieras.
-                                                    // Aquí actualizo con el número (Long) y también guardo referencia idTurno por si la necesitas.
-                                                    val clienteUpdates = mapOf(
-                                                        "turnoNumero" to nuevoTurnoLong,
-                                                        "turnoRefId" to turnoRef.id,
-                                                        "turnoRestaurante" to nombreRestaurante
-                                                    )
-
-                                                    db.collection("clientes").document(clienteUid)
-                                                        .update(clienteUpdates)
-                                                        .addOnSuccessListener {
-                                                            // actualizar estado UI (turnoAsignado espera Int?)
-                                                            turnoAsignado = try { nuevoTurnoLong.toInt() } catch (e: Exception) { null }
-                                                            generandoTurno = false
-                                                            Toast.makeText(context, "Turno #${nuevoTurnoLong} reservado correctamente", Toast.LENGTH_LONG).show()
-                                                            navController?.navigate("InfoProducto")
-                                                        }
-                                                        .addOnFailureListener { e ->
-                                                            generandoTurno = false
-                                                            Toast.makeText(context, "Error al guardar turno en cliente: ${e.message}", Toast.LENGTH_SHORT).show()
-                                                        }
+                                            db.collection("clientes").document(clienteUid)
+                                                .update(clienteUpdates)
+                                                .addOnSuccessListener {
+                                                    turnoAsignado = nuevoTurnoLong.toInt()
+                                                    generandoTurno = false
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Turno #${nuevoTurnoLong} en $restauranteNombreFinal reservado correctamente",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    navController?.navigate("InfoProducto")
                                                 }
                                                 .addOnFailureListener { e ->
                                                     generandoTurno = false
-                                                    Toast.makeText(context, "Error al registrar el turno en Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(context, "Error al guardar turno en cliente: ${e.message}", Toast.LENGTH_SHORT).show()
                                                 }
                                         }
                                         .addOnFailureListener { e ->
                                             generandoTurno = false
-                                            Toast.makeText(context, "Error al obtener último turno: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "Error al registrar el turno: ${e.message}", Toast.LENGTH_SHORT).show()
                                         }
                                 }
                                 .addOnFailureListener { e ->
                                     generandoTurno = false
-                                    Toast.makeText(context, "Error al obtener datos del restaurante: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Error al obtener último turno: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                              },
                         colors = ButtonDefaults.buttonColors(

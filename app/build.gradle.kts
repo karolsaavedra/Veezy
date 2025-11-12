@@ -86,6 +86,11 @@ dependencies {
     //Generar codigo QR
     implementation("com.simonsickle:composed-barcodes:1.3.0")
 
+    //galeria
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+
+
 
 
 

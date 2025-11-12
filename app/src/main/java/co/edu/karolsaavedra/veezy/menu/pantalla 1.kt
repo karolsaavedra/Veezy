@@ -106,7 +106,7 @@ fun MenuScreen(navController: NavController) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(burgerList) { burger ->
-                        BurgerCard(burger, onClick = { navController.navigate("Burgerinfo") })
+                        BurgerCard(burger, onClick = { navController.navigate("Burgerinfo/${burger.restaurant}") })
                     }
 
 

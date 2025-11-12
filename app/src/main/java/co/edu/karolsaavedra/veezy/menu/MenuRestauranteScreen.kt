@@ -199,7 +199,6 @@ fun MenuRestauranteScreen(navController: NavHostController,
                         BurgerCardR(burger = burger)
                     }
 
-                    //  Card vacía para agregar nuevo producto
                     item {
                         AddBurgerButton(onClick = {
                             navController.navigate("editarMenu")
