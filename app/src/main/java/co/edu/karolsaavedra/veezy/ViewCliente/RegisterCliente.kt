@@ -353,7 +353,7 @@ fun RegisterCliente(
                                         onSuccesfuRegisterCliente()
                                     }
                                     .addOnFailureListener { e ->
-                                        // Limpieza opcional: borrar el usuario de Auth si Firestore falla
+                                        //borrar el usuario de Auth si Firestore falla
                                         auth.currentUser?.delete()
                                         registerError = "No se pudo guardar el perfil: ${e.message}"
                                         isLoading = false

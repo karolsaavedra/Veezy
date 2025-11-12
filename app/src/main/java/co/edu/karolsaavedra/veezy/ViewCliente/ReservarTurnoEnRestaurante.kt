@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewCliente
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +49,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 
 @Composable
@@ -55,10 +61,21 @@ fun PaginaReservas(
     onClickParaLlevar: () -> Unit = {},
     onClickRestaurante: () -> Unit = {}
 ) {
-    var personas by remember { mutableStateOf(0) }
-    var hamburguesas by remember { mutableStateOf(0) }
-    var papas by remember { mutableStateOf(0) }
+    var personasRest by remember { mutableStateOf(0) }
+    var hamburguesasRest by remember { mutableStateOf(0) }
+    var papasRest by remember { mutableStateOf(0) }
+
+    var hamburguesasLlevar by remember { mutableStateOf(0) }
+    var papasLlevar by remember { mutableStateOf(0) }
+
     var opcionSeleccionada by remember { mutableStateOf("Restaurante") }
+    var turnoAsignado by remember { mutableStateOf<Int?>(null) }
+    var generandoTurno by remember { mutableStateOf(false) }
+
+
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
 
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
@@ -150,56 +167,82 @@ fun PaginaReservas(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
+
+                    // Restaurante
                     Button(
-                        onClick = {
-                            opcionSeleccionada = "Restaurante"
-                            onClickRestaurante()
-                        },
+                        onClick = { opcionSeleccionada = "Restaurante" },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (opcionSeleccionada == "Restaurante") Color(0xFFFFC64F) else Color(0xFFEFEFEF),
-                            contentColor = if (opcionSeleccionada == "Restaurante") Color.White else Color(0xFF641717)
+                            containerColor = if (opcionSeleccionada == "Restaurante")
+                                Color(0xFFFFC64F)
+                            else Color(0xFFEFEFEF),
+                            contentColor = if (opcionSeleccionada == "Restaurante")
+                                Color.White
+                            else Color(0xFF641717)
                         ),
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text(text = "Restaurante", fontWeight = FontWeight.Bold)
+                        Text("Restaurante", fontWeight = FontWeight.Bold)
                     }
+
+                    // Para llevar
                     Button(
-                        onClick = {
-                            opcionSeleccionada = "Para llevar"
-                            onClickParaLlevar()
-                        },
+                        onClick = { opcionSeleccionada = "Para llevar" },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (opcionSeleccionada == "Para llevar") Color(0xFFE5A900) else Color(0xFFEFEFEF),
-                            contentColor = if (opcionSeleccionada == "Para llevar") Color.White else Color(0xFF641717)
+                            containerColor = if (opcionSeleccionada == "Para llevar")
+                                Color(0xFFFFC64F)
+                            else Color(0xFFEFEFEF),
+                            contentColor = if (opcionSeleccionada == "Para llevar")
+                                Color.White
+                            else Color(0xFF641717)
                         ),
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text(text = "Para llevar", fontWeight = FontWeight.Bold)
+                        Text("Para llevar", fontWeight = FontWeight.Bold)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                val fondoItems =
-                    if (opcionSeleccionada == "Restaurante") Color(0xFFFDECEC) else Color(0xFFFFF6E0)
+                // Fondo diferente según tipo
 
-                //  Lista de productos
-                ItemContador("Personas", personas, fondoItems,
-                    onSumar = { personas++ },
-                    onRestar = { if (personas > 0) personas-- }
+                val fondoItems = if (opcionSeleccionada == "Restaurante") Color(0xFFFDECEC) else Color(
+                    0xFFFDECEC
                 )
-                ItemContador("Hamburguesas", hamburguesas, fondoItems,
-                    onSumar = { hamburguesas++ },
-                    onRestar = { if (hamburguesas > 0) hamburguesas-- }
-                )
-                ItemContador("Papas", papas, fondoItems,
-                    onSumar = { papas++ },
-                    onRestar = { if (papas > 0) papas-- }
-                )
-
+                // ======= LISTA DE PRODUCTOS SEGÚN OPCIÓN =======
+                if (opcionSeleccionada == "Restaurante") {
+                    ItemContador("Personas", personasRest, fondoItems,
+                        onSumar = { personasRest++ },
+                        onRestar = { if (personasRest > 0) personasRest-- })
+                    ItemContador("Hamburguesas", hamburguesasRest, fondoItems,
+                        onSumar = { hamburguesasRest++ },
+                        onRestar = { if (hamburguesasRest > 0) hamburguesasRest-- })
+                    ItemContador("Papas", papasRest, fondoItems,
+                        onSumar = { papasRest++ },
+                        onRestar = { if (papasRest > 0) papasRest-- })
+                } else {
+                    ItemContador("Hamburguesas", hamburguesasLlevar, fondoItems,
+                        onSumar = { hamburguesasLlevar++ },
+                        onRestar = { if (hamburguesasLlevar > 0) hamburguesasLlevar-- })
+                    ItemContador("Papas", papasLlevar, fondoItems,
+                        onSumar = { papasLlevar++ },
+                        onRestar = { if (papasLlevar > 0) papasLlevar-- })
+                }
                 Spacer(modifier = Modifier.height(170.dp))
+
+                // ===== TURNO ASIGNADO =====
+                turnoAsignado?.let {
+                    Text(
+                        text = "Tu turno es: $it",
+                        color = Color(0xFF641717),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+
 
                 //Botones inferiores
                 Row(
@@ -207,7 +250,7 @@ fun PaginaReservas(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
-                        onClick = { /*Cancelar*/ },
+                        onClick = { navController?.navigate("InfoProducto") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFEFEFEF),
                             contentColor = Color(0xFF641717)
@@ -218,7 +261,100 @@ fun PaginaReservas(
                         Text("Cancelar", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = { /*Reservar*/ },
+                        onClick = {
+                            generandoTurno = true
+
+                            val clienteUid = auth.currentUser?.uid
+                            if (clienteUid == null) {
+                                Toast.makeText(context, "Error: usuario no autenticado", Toast.LENGTH_SHORT).show()
+                                generandoTurno = false
+                                return@Button
+                            }
+
+                            // Si tienes un uid real del restaurante, úsalo aquí.
+                            // Actualmente en tu código usas un id fijo; cámbialo por el real si lo tienes.
+                            val restauranteId = if (opcionSeleccionada == "Restaurante") "restauranteABC" else "paraLlevarXYZ"
+
+                            // Primero intentamos obtener el nombre del restaurante (si existe un documento con ese id)
+                            db.collection("restaurantes").document(restauranteId).get()
+                                .addOnSuccessListener { restaDoc ->
+                                    val nombreRestaurante = restaDoc?.getString("nombreRestaurante") ?: restauranteId
+
+                                    // Luego buscamos el último turno para ese restaurante por nombre (o por id si prefieres)
+                                    db.collection("turnos")
+                                        .whereEqualTo("restauranteNombre", nombreRestaurante)
+                                        .orderBy("numero", Query.Direction.DESCENDING)
+                                        .limit(1)
+                                        .get()
+                                        .addOnSuccessListener { snapshot ->
+                                            // ultimoTurno como Long (seguro)
+                                            val ultimoTurno: Long = if (!snapshot.isEmpty)
+                                                snapshot.documents[0].getLong("numero") ?: 0L
+                                            else 0L
+
+                                            val nuevoTurnoLong: Long = ultimoTurno + 1L
+
+                                            // Armo los datos del turno (guardo numero como Long para evitar problemas)
+                                            val turnoData = hashMapOf(
+                                                "numero" to nuevoTurnoLong,
+                                                "restauranteId" to restauranteId,
+                                                "restauranteNombre" to nombreRestaurante,
+                                                "tipo" to opcionSeleccionada,
+                                                "clienteUid" to clienteUid,
+                                                "timestamp" to com.google.firebase.Timestamp.now()
+                                            )
+
+                                            // Campos adicionales según tipo
+                                            if (opcionSeleccionada == "Restaurante") {
+                                                turnoData["personas"] = personasRest
+                                                turnoData["hamburguesas"] = hamburguesasRest
+                                                turnoData["papas"] = papasRest
+                                            } else {
+                                                turnoData["hamburguesas"] = hamburguesasLlevar
+                                                turnoData["papas"] = papasLlevar
+                                            }
+
+                                            // Guardar en la colección "turnos"
+                                            db.collection("turnos")
+                                                .add(turnoData)
+                                                .addOnSuccessListener { turnoRef ->
+                                                    // Actualizar documento del cliente con referencia o número según prefieras.
+                                                    // Aquí actualizo con el número (Long) y también guardo referencia idTurno por si la necesitas.
+                                                    val clienteUpdates = mapOf(
+                                                        "turnoNumero" to nuevoTurnoLong,
+                                                        "turnoRefId" to turnoRef.id,
+                                                        "turnoRestaurante" to nombreRestaurante
+                                                    )
+
+                                                    db.collection("clientes").document(clienteUid)
+                                                        .update(clienteUpdates)
+                                                        .addOnSuccessListener {
+                                                            // actualizar estado UI (turnoAsignado espera Int?)
+                                                            turnoAsignado = try { nuevoTurnoLong.toInt() } catch (e: Exception) { null }
+                                                            generandoTurno = false
+                                                            Toast.makeText(context, "Turno #${nuevoTurnoLong} reservado correctamente", Toast.LENGTH_LONG).show()
+                                                            navController?.navigate("InfoProducto")
+                                                        }
+                                                        .addOnFailureListener { e ->
+                                                            generandoTurno = false
+                                                            Toast.makeText(context, "Error al guardar turno en cliente: ${e.message}", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    generandoTurno = false
+                                                    Toast.makeText(context, "Error al registrar el turno en Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+                                                }
+                                        }
+                                        .addOnFailureListener { e ->
+                                            generandoTurno = false
+                                            Toast.makeText(context, "Error al obtener último turno: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                }
+                                .addOnFailureListener { e ->
+                                    generandoTurno = false
+                                    Toast.makeText(context, "Error al obtener datos del restaurante: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                             },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFFC64F),
                             contentColor = Color.White

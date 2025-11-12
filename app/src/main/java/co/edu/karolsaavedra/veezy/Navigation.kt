@@ -194,6 +194,24 @@ fun NavigationApp() {
 
             composable("Burgerinfo") { InfoProducto(navController = navController) }
 
+            composable("ReservarTurnoRestaurante") {
+                PaginaReservas(navController = navController,
+                    onClickParaLlevar = { navController.navigate("ReservarTurnoParallevar") },
+                )
+            }
+            composable("ReservarTurnoParallevar") {
+                PaginaReservasParallevar(navController = navController,
+                onClickParaRestaurante = { navController.navigate("ReservarTurnoRestaurante") },
+                onClickParaLlevar = { navController.navigate("ReservarTurnoParallevar") }
+
+                )
+            }
+            composable("InfoProducto") { InfoProducto(navController = navController) }
+
+
+            composable("TurnoGenerado") { TurnoScreen(navController = navController) }
+
+
         }
     }
 }

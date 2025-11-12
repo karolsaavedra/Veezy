@@ -47,9 +47,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 @Composable
 fun PaginaReservasParallevar(
+
+
     navController: NavController, // Se agrega el parámetro requerido
     onClickParaLlevar: () -> Unit = {},
     onClickParaRestaurante: () -> Unit = {}
@@ -57,6 +62,10 @@ fun PaginaReservasParallevar(
     var hamburguesas by remember { mutableStateOf(0) }
     var papas by remember { mutableStateOf(0) }
     var opcionSeleccionada by remember { mutableStateOf("Restaurante") }
+    var turnoAsignado by remember { mutableStateOf<Int?>(null) }
+
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
 
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
@@ -69,7 +78,7 @@ fun PaginaReservasParallevar(
                 .padding(paddingValues)
                 .background(Color(0xFFFAF0F0))
         ) {
-            // 🔹 Encabezado burdeos
+            // Encabezado burdeos
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -138,7 +147,7 @@ fun PaginaReservasParallevar(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔹 Selector de tipo de pedido
+                //Selector de tipo de pedido
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -147,51 +156,55 @@ fun PaginaReservasParallevar(
                     Button(
                         onClick = {
                             opcionSeleccionada = "Restaurante"
-                            onClickParaRestaurante()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (opcionSeleccionada == "Restaurante")
-                                Color(0xFFFFC64F)
-                            else Color(0xFFEFEFEF),
+                                Color(0xFFFFC64F) // Amarillo cuando está seleccionado
+                            else Color(0xFFEFEFEF), // Gris cuando NO está seleccionado
                             contentColor = if (opcionSeleccionada == "Restaurante")
-                                Color.White
-                            else Color(0xFF641717)
+                                Color.White // Letra blanca cuando está activo
+                            else Color(0xFF641717) // Vino tinto cuando está inactivo
                         ),
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text(text = "Restaurante", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Restaurante",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
-                    // 🔹 Botón Para llevar
+                    // Botón Para llevar
                     Button(
                         onClick = {
                             opcionSeleccionada = "Para llevar"
-                            onClickParaLlevar()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (opcionSeleccionada == "Para llevar")
-                                Color(0xFFFFC64F)
-                            else Color(0xFFEFEFEF),
+                                Color(0xFFFFC64F) // Amarillo cuando está seleccionado
+                            else Color(0xFFEFEFEF), // Gris cuando NO está seleccionado
                             contentColor = if (opcionSeleccionada == "Para llevar")
-                                Color.White
-                            else Color(0xFF641717)
+                                Color.White // Letra blanca cuando está activo
+                            else Color(0xFF641717) // Vino tinto cuando está inactivo
                         ),
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text(text = "Para llevar", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Para llevar",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔹 Fondo según tipo
+                //Fondo según tipo
                 val fondoItems = if (opcionSeleccionada == "Restaurante")
                     Color(0xFFFDECEC)
                 else Color(0xFFFFF6E0)
 
-                // 🔹 Lista de productos
+                // Lista de productos
                 ItemContador2(
                     titulo = "Hamburguesas",
                     cantidad = hamburguesas,
@@ -209,13 +222,13 @@ fun PaginaReservasParallevar(
 
                 Spacer(modifier = Modifier.height(190.dp))
 
-                // 🔹 Botones inferiores
+                // Botones inferiores
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
-                        onClick = { /*Cancelar*/ },
+                        onClick = { navController.navigate("InfoProducto") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFEFEFEF),
                             contentColor = Color(0xFF641717)
@@ -226,7 +239,40 @@ fun PaginaReservasParallevar(
                         Text("Cancelar", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = { /*Reservar*/ },
+                        onClick = { val clienteUid = auth.currentUser?.uid
+                            val restauranteId = "restauranteABC" // Cambia por ID real
+
+                            if (clienteUid != null) {
+                                db.collection("turnos")
+                                    .whereEqualTo("restauranteId", restauranteId)
+                                    .orderBy("numero", Query.Direction.DESCENDING)
+                                    .limit(1)
+                                    .get()
+                                    .addOnSuccessListener { snapshot ->
+                                        val ultimoTurno =
+                                            if (!snapshot.isEmpty) snapshot.documents[0]
+                                                .getLong("numero") ?: 0 else 0
+                                        val nuevoTurno = (ultimoTurno + 1).toInt()
+
+                                        val turnoData = hashMapOf(
+                                            "clienteId" to clienteUid,
+                                            "restauranteId" to restauranteId,
+                                            "numero" to nuevoTurno,
+                                            "estado" to "pendiente",
+                                            "tipoPedido" to opcionSeleccionada,
+                                            "hamburguesas" to hamburguesas,
+                                            "papas" to papas
+                                        )
+
+                                        db.collection("turnos")
+                                            .add(turnoData)
+                                            .addOnSuccessListener {
+                                                turnoAsignado = nuevoTurno
+                                                navController.navigate("InfoProducto")
+                                            }
+                                    }
+                            }
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFFC64F),
                             contentColor = Color.White
@@ -241,7 +287,7 @@ fun PaginaReservasParallevar(
                 Spacer(modifier = Modifier.height(80.dp))
             }
 
-            // 🔹 Imagen hamburguesa
+            // Imagen hamburguesa
             Image(
                 painter = painterResource(id = R.drawable.hamburguesa),
                 contentDescription = "Hamburguesa",

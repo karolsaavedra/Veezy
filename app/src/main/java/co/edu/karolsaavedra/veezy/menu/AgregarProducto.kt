@@ -339,7 +339,7 @@ fun AgregarProductoScreen(navController: NavController) {
                 Button(
                     onClick = {
                         if (nombreProducto.isBlank() || precio.isBlank() || descripcion.isBlank() || direccion.isBlank()) {
-                            mensaje = "⚠️ Por favor completa todos los campos."
+                            mensaje = " Por favor completa todos los campos."
                         } else {
 
                             val updates = mapOf(

@@ -6,9 +6,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -23,13 +29,55 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.R
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.simonsickle.compose.barcodes.Barcode
 import com.simonsickle.compose.barcodes.BarcodeType
 
 @Composable
-fun TurnoScreen() {
-    val cadena="Edson Julian"
+fun TurnoScreen(navController: NavController? = null) {
+    // NUEVO: Instancias de Firebase
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val userId = auth.currentUser?.uid
+
+    // NUEVO: Estados para mostrar los datos en pantalla
+    var turno by remember { mutableStateOf<Int?>(null) }
+    var nombreCliente by remember { mutableStateOf("") }
+    var codigoCliente by remember { mutableStateOf("") }
+    var nombreRestaurante by remember { mutableStateOf("") }
+
+    // NUEVO: Cargar información del cliente y su turno
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            db.collection("users").document(userId).get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        nombreCliente =
+                            (doc.getString("nombre") ?: "") + " " + (doc.getString("apellido") ?: "")
+                        codigoCliente = userId.take(6).uppercase()
+                        turno = (doc.getLong("turno") ?: 0L).toInt()
+
+                        // Obtener restaurante del último turno del cliente
+                        db.collection("turnos")
+                            .whereEqualTo("clienteId", userId)
+                            .get()
+                            .addOnSuccessListener { snapshot ->
+                                val ultimoTurno = snapshot.documents.maxByOrNull {
+                                    it.getTimestamp("timestamp")?.toDate()?.time ?: 0L
+                                }
+                                nombreRestaurante =
+                                    ultimoTurno?.getString("restauranteId") ?: "No asignado"
+                            }
+                    }
+                }
+        }
+    }
+
+    val cadena = "Turno Cliente"
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -142,9 +190,9 @@ fun TurnoScreen() {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // ===== NÚMERO DEL TURNO =====
+                    // ===== NÚMERO DEL TURNO DINÁMICO =====
                     Text(
-                        text = "20",
+                        text = turno?.toString() ?: "--", //NUEVO: número real del turno
                         style = TextStyle(
                             fontSize = 90.sp,
                             fontFamily = FontFamily(Font(R.font.afacad)),
@@ -153,6 +201,9 @@ fun TurnoScreen() {
                             textAlign = TextAlign.Center
                         )
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -179,7 +230,7 @@ fun TurnoScreen() {
                     Spacer(modifier = Modifier.height(28.dp))
 
                     // ===== USUARIO =====
-                    InfoColumn("Usuario", "Karol Saavedra")
+                    InfoColumn("Usuario", nombreCliente.ifEmpty { "--" })
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -194,6 +245,19 @@ fun TurnoScreen() {
                             textAlign = TextAlign.Center
                         )
                     )
+                    // ===== Nombre restaurante =====
+                    Text(
+                        text = nombreRestaurante.ifEmpty { "Cargando..." },
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontFamily = FontFamily(Font(R.font.afacad)),
+                            fontWeight = FontWeight.Normal,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+
+
 
                     Spacer(modifier = Modifier.height(20.dp))
 

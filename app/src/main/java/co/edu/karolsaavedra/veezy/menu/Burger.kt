@@ -15,5 +15,6 @@ val burgerList = listOf(
     Burger("La Atómica", "Pinchadas Burger", "12 PM - 10 PM", "$28.000", R.drawable.burger1),
     Burger("Black Mamba", "Luigi Jr", "12 PM - 10 PM", "$27.000", R.drawable.burger1),
     Burger("Reanimación", "Lab", "12 PM - 10 PM", "$26.000", R.drawable.burger1),
-    Burger("Reanimación", "Lab", "12 PM - 10 PM", "$26.000", R.drawable.burger1)
+    Burger("Reanimación", "Lab", "12 PM - 10 PM", "$26.000", R.drawable.burger1),
+    Burger("Sweet Brooklyn", "Feel Fresco", "12 PM - 10 PM", "$25.000", R.drawable.burger1)
 )

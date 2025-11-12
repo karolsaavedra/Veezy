@@ -108,7 +108,7 @@ fun InfoProducto(navController: NavController) {
         ) {
             // Botón "Turno"
             Button(
-                onClick = { " " },
+                onClick = { navController.navigate("ReservarTurnoRestaurante") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFCC00)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
