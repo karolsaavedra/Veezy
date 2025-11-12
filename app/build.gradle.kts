@@ -58,6 +58,7 @@ dependencies {
 
 
 
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,6 +89,9 @@ dependencies {
 
     //galeria
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    //Storage
+    implementation(libs.firebase.storage)
 
 
 

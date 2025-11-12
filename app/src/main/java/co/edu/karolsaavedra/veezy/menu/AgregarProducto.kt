@@ -1,45 +1,27 @@
 package co.edu.karolsaavedra.veezy.menu
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,20 +30,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import co.edu.karolsaavedra.veezy.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
+import com.google.firebase.storage.FirebaseStorage
 
 @Composable
 fun AgregarProductoScreen(navController: NavController) {
 
     val db = FirebaseFirestore.getInstance()
+    val storage = FirebaseStorage.getInstance()
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
     var mensaje by remember { mutableStateOf("") }
 
@@ -75,8 +58,6 @@ fun AgregarProductoScreen(navController: NavController) {
     var direccionError by remember { mutableStateOf("") }
     var descripcionError by remember { mutableStateOf("") }
 
-    var isLoading by remember { mutableStateOf(true) }
-
     LaunchedEffect(uid) {
         db.collection("restaurantes").document(uid)
             .get()
@@ -84,7 +65,7 @@ fun AgregarProductoScreen(navController: NavController) {
                 if (document != null && document.exists()) {
                     nombreProducto = document.getString("productos") ?: ""
                     precio = document.getString("precio") ?: ""
-                    descripcion = document.getString("descripcion") ?: ""
+                    //descripcion = document.getString("descripcion") ?: ""
                     direccion = document.getString("direccion") ?: ""
                 }
             }
@@ -94,18 +75,44 @@ fun AgregarProductoScreen(navController: NavController) {
     }
 
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
-    var imagenUrl by remember { mutableStateOf("") }
+    var imagenSubidaUri by remember { mutableStateOf<Uri?>(null) } // URI final desde Storage
     val context = LocalContext.current
 
-// Launcher para abrir la galería
-    val launcher = rememberLauncherForActivityResult(
+    // Launcher para seleccionar imagen de la galería
+    val galeriaLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        imagenUri = uri
+        if (uri != null) {
+            imagenUri = uri
+            Toast.makeText(context, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
+            Log.d("AgregarProducto", "URI seleccionada: $uri")
+        }
     }
 
+    // Launcher para pedir permiso
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            galeriaLauncher.launch("image/*")
+        } else {
+            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    fun abrirGaleria() {
+        val permiso = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
 
+        if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED) {
+            galeriaLauncher.launch("image/*")
+        } else {
+            permisoLauncher.launch(permiso)
+        }
+    }
 
     Scaffold(
         containerColor = Color(0xFF641717)
@@ -118,7 +125,6 @@ fun AgregarProductoScreen(navController: NavController) {
         ) {
             val scrollState = rememberScrollState()
 
-            // ===== CONTENIDO PRINCIPAL =====
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,7 +135,7 @@ fun AgregarProductoScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(40.dp))
 
                 IconButton(
-                    onClick = {navController.popBackStack()},
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier
                         .size(40.dp)
                         .align(Alignment.Start)
@@ -152,19 +158,34 @@ fun AgregarProductoScreen(navController: NavController) {
                         .background(Color(0xFF8C3A3A), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .background(Color(0xFFD58E8E), CircleShape)
-                            .clickable { launcher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.plus),
-                            contentDescription = "Agregar imagen",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
+
+                    // Mostrar imagen subida si ya se subió, si no mostrar la seleccionada
+                    val mostrarImagen = imagenSubidaUri ?: imagenUri
+
+                    if (mostrarImagen != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(mostrarImagen),
+                            contentDescription = "Imagen seleccionada",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp)
+                                .clickable { abrirGaleria() },
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .background(Color(0xFFD58E8E), CircleShape)
+                                .clickable { abrirGaleria() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.plus),
+                                contentDescription = "Agregar imagen",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
                 }
 
@@ -180,13 +201,12 @@ fun AgregarProductoScreen(navController: NavController) {
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontFamily = FontFamily.SansSerif,
-                        color = Color(0xFFFFCC00), // Amarillo
+                        color = Color(0xFFFFCC00),
                         fontWeight = FontWeight.Bold
                     )
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
-
 
                 OutlinedTextField(
                     value = nombreProducto,
@@ -226,13 +246,12 @@ fun AgregarProductoScreen(navController: NavController) {
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontFamily = FontFamily.SansSerif,
-                        color = Color(0xFFFFCC00), // Amarillo
+                        color = Color(0xFFFFCC00),
                         fontWeight = FontWeight.Bold
                     )
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
-
 
                 OutlinedTextField(
                     value = precio,
@@ -257,7 +276,7 @@ fun AgregarProductoScreen(navController: NavController) {
                         unfocusedContainerColor = Color.White
                     ),
                     supportingText = {
-                        if (precioError.isNotEmpty()) Text(precio, color = Color.Red)
+                        if (precioError.isNotEmpty()) Text(precioError, color = Color.Red)
                     }
                 )
 
@@ -272,13 +291,12 @@ fun AgregarProductoScreen(navController: NavController) {
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontFamily = FontFamily.SansSerif,
-                        color = Color(0xFFFFCC00), // Amarillo
+                        color = Color(0xFFFFCC00),
                         fontWeight = FontWeight.Bold
                     )
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
-
 
                 OutlinedTextField(
                     value = descripcion,
@@ -318,13 +336,12 @@ fun AgregarProductoScreen(navController: NavController) {
                     style = TextStyle(
                         fontSize = 24.sp,
                         fontFamily = FontFamily.SansSerif,
-                        color = Color(0xFFFFCC00), // Amarillo
+                        color = Color(0xFFFFCC00),
                         fontWeight = FontWeight.Bold
                     )
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
-
 
                 OutlinedTextField(
                     value = direccion,
@@ -358,26 +375,60 @@ fun AgregarProductoScreen(navController: NavController) {
                 // ===== BOTÓN GUARDAR =====
                 Button(
                     onClick = {
+                        val currentUser = FirebaseAuth.getInstance().currentUser
+                        if (currentUser == null) {
+                            mensaje = "Debes iniciar sesión antes de subir un producto."
+                            return@Button
+                        }
+                        val uid = currentUser.uid
+
                         if (nombreProducto.isBlank() || precio.isBlank() || descripcion.isBlank() || direccion.isBlank()) {
-                            mensaje = " Por favor completa todos los campos."
-                        } else {
+                            mensaje = "Por favor completa todos los campos."
+                            return@Button
+                        }
 
-                            val updates = mapOf(
-                                "nombreProducto" to nombreProducto,
-                                "precio" to precio,
-                                "descripcion" to descripcion,
-                                "direccion" to direccion
-                            )
+                        if (imagenUri == null) {
+                            mensaje = "Selecciona una imagen antes de guardar."
+                            return@Button
+                        }
 
-                            db.collection("restaurantes").document(uid)
-                                .set(updates, com.google.firebase.firestore.SetOptions.merge())
-                                .addOnSuccessListener {
-                                    mensaje = "Datos guardados correctamente."
+                        // Subir imagen a Firebase Storage
+                        val imageRef = FirebaseStorage.getInstance().reference
+                            .child("restaurantes/$uid/productos/${System.currentTimeMillis()}.jpg")
+
+                        mensaje = "Subiendo imagen..."
+
+                        imageRef.putFile(imagenUri!!)
+                            .addOnSuccessListener {
+                                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                                    val productoData = mapOf(
+                                        "nombreProducto" to nombreProducto,
+                                        "precio" to precio,
+                                        "descripcion" to descripcion,
+                                        "direccion" to direccion,
+                                        "imagenUrl" to uri.toString()
+                                    )
+
+                                    // Guardar en Firestore
+                                    FirebaseFirestore.getInstance()
+                                        .collection("restaurantes")
+                                        .document(uid)
+                                        .collection("productos")
+                                        .add(productoData)
+                                        .addOnSuccessListener {
+                                            mensaje = "Producto guardado correctamente."
+                                            imagenSubidaUri = uri // Mostrar imagen desde Storage
+                                            navController.navigate("menuRestaurante")
+                                        }
+                                        .addOnFailureListener { e ->
+                                            mensaje = "Error al guardar en Firestore: ${e.message}"
+                                        }
+                                }.addOnFailureListener { e ->
+                                    mensaje = "Error al obtener URL de imagen: ${e.message}"
                                 }
-                                .addOnFailureListener {
-                                    mensaje = "Error al guardar: ${it.message}"
-                                    }
-                                navController.navigate("menuRestaurante")
+                            }
+                            .addOnFailureListener { e ->
+                                mensaje = "Error al subir imagen: ${e.message}"
                             }
 
                     },
@@ -392,52 +443,17 @@ fun AgregarProductoScreen(navController: NavController) {
                         color = Color(0xFF641717),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
-
                     )
                 }
+
                 if (mensaje.isNotEmpty()) {
                     Text(
                         text = mensaje,
-                        color = when {
-                            mensaje.contains("correctamente") -> Color.Green
-                            else -> Color.Red
-                        },
+                        color = if (mensaje.contains("correctamente")) Color.Green else Color.Red,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }
         }
     }
-}
-
-@Composable
-fun LabeledTextField2(label: String, placeholder: String, labelColor: Color) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            color = labelColor,
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-        )
-        TextField(
-            value = "",
-            onValueChange = {},
-            placeholder = { Text(placeholder, color = Color(0xFFBDBDBD)) },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-@Preview(showBackground = true)
-@Composable
-fun AgregarProductoScreenPreview() {
-    val navController = rememberNavController()
-    AgregarProductoScreen(navController = navController)
 }
