@@ -47,7 +47,7 @@ fun BurgerInfo(burger: Burger) {
 
             // Imagen principal de la hamburguesa
             Image(
-                painter = painterResource(id = burger.imageRes),
+                painter = painterResource(R.drawable.burger1),
                 contentDescription = burger.name,
                 modifier = Modifier
                     .fillMaxWidth()
