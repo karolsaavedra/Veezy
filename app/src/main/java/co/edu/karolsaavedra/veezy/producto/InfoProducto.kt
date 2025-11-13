@@ -2,6 +2,8 @@ package co.edu.karolsaavedra.veezy.producto
 
 import android.content.Intent
 import android.net.Uri
+import android.content.Context
+import android.location.Geocoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,9 +44,10 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
     var isFavorite by remember { mutableStateOf(false) }
     var producto by remember { mutableStateOf<Producto?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var ubicacionRestaurante = LatLng(7.108988715896521, -73.10634914047473)
+    var direccionRestaurante by remember { mutableStateOf("") }
+    var ubicacionRestaurante by remember { mutableStateOf<LatLng?>(null) }
 
-    // Cargar producto desde Firebase
+    // Cargar producto y dirección desde Firebase
     LaunchedEffect(productoId) {
         try {
             val docs = db.collection("restaurantes")
@@ -54,6 +57,14 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
 
             if (!docs.isEmpty) {
                 val restauranteDoc = docs.documents.first()
+
+                // Obtener dirección del restaurante
+                direccionRestaurante = restauranteDoc.getString("direccion") ?: ""
+                println("Dirección del restaurante: $direccionRestaurante")
+
+                // Convertir dirección a coordenadas
+                ubicacionRestaurante = obtenerCoordenadas(context, direccionRestaurante)
+
                 val productoDoc = restauranteDoc.reference
                     .collection("productos")
                     .document(productoId)
@@ -63,10 +74,10 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
                 if (productoDoc.exists()) {
                     producto = productoDoc.toObject(Producto::class.java)
                 } else {
-                    println("No se encontró producto con ID: $productoId")
+                    println("⚠ No se encontró producto con ID: $productoId")
                 }
             } else {
-                println("No se encontró restaurante con nombre: $restauranteNombre")
+                println("⚠ No se encontró restaurante con nombre: $restauranteNombre")
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -75,7 +86,7 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
         }
     }
 
-    // Cargar estado de favorito desde Firebase
+    // Cargar estado de favorito desde Firebase - USANDO CLIENTES
     LaunchedEffect(productoId, userId) {
         if (userId == null) {
             println("Usuario no autenticado")
@@ -98,16 +109,19 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
         }
     }
 
-    // Función para guardar/eliminar favorito
+    // Función para guardar/eliminar favorito - USANDO CLIENTES
     fun toggleFavorito() {
-        if (userId == null) return
+        if (userId == null) {
+            println("Usuario no autenticado, no se puede guardar favorito")
+            return
+        }
 
         val nuevoEstado = !isFavorite
         isFavorite = nuevoEstado // Actualizar UI inmediatamente
 
         scope.launch {
             try {
-                val favoritoRef = db.collection("usuarios")
+                val favoritoRef = db.collection("clientes")
                     .document(userId)
                     .collection("favoritos")
                     .document(productoId)
@@ -119,14 +133,15 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
                             "productoId" to productoId,
                             "nombreProducto" to (producto?.nombreProducto ?: ""),
                             "restauranteNombre" to restauranteNombre,
+                            "isFavorite" to true,
                             "timestamp" to System.currentTimeMillis()
                         )
                     ).await()
-                    println("Producto agregado a favoritos")
+                    println("Producto agregado a favoritos: $productoId en clientes/$userId/favoritos")
                 } else {
                     // Eliminar de favoritos
                     favoritoRef.delete().await()
-                    println("Producto eliminado de favoritos")
+                    println("Producto eliminado de favoritos: $productoId")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -176,7 +191,13 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
                         .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
-
+                    Image(
+                        painter = painterResource(
+                            id = if (isFavorite) R.drawable.star_yellow else R.drawable.star
+                        ),
+                        contentDescription = "Favorito",
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
             }
 
@@ -238,10 +259,21 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFFFCC00)),
                 onClick = {
-                    val url = Uri.parse("google.navigation:q=${ubicacionRestaurante.latitude},${ubicacionRestaurante.longitude}&mode=d")
-                    val intent = Intent(Intent.ACTION_VIEW, url)
-                    intent.setPackage("com.google.android.apps.maps")
-                    context.startActivity(intent)
+                    ubicacionRestaurante?.let { coords ->
+                        val url = Uri.parse("google.navigation:q=${coords.latitude},${coords.longitude}&mode=d")
+                        val intent = Intent(Intent.ACTION_VIEW, url)
+                        intent.setPackage("com.google.android.apps.maps")
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Si Google Maps no está instalado, usar dirección en el navegador
+                            val webUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encode(direccionRestaurante)}")
+                            val webIntent = Intent(Intent.ACTION_VIEW, webUrl)
+                            context.startActivity(webIntent)
+                        }
+                    } ?: run {
+                        println("No se pudo obtener la ubicación del restaurante")
+                    }
                 }
             ) {
                 Box(
@@ -264,4 +296,28 @@ fun InfoProducto(navController: NavController, restauranteNombre: String, produc
 fun InfopProductopreview() {
     val navController = rememberNavController()
     InfoProducto(navController = navController, restauranteNombre = "Mi Restaurante", productoId = "demo123")
+}
+
+// ======= FUNCIÓN PARA CONVERTIR DIRECCIÓN A COORDENADAS =======
+fun obtenerCoordenadas(context: Context, direccion: String): LatLng? {
+    return try {
+        val geocoder = Geocoder(context, java.util.Locale.getDefault())
+
+        // Agregar "Bucaramanga, Santander, Colombia" a la dirección para mejor precisión
+        val direccionCompleta = "$direccion, Bucaramanga, Santander, Colombia"
+
+        val results = geocoder.getFromLocationName(direccionCompleta, 1)
+        if (!results.isNullOrEmpty()) {
+            val coords = LatLng(results[0].latitude, results[0].longitude)
+            println("Coordenadas obtenidas: $coords para dirección: $direccionCompleta")
+            coords
+        } else {
+            println("No se encontraron coordenadas para: $direccionCompleta")
+            null
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        println("Error al obtener coordenadas: ${e.message}")
+        null
+    }
 }

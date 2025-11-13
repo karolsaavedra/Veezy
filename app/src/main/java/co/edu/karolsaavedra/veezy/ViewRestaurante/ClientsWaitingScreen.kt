@@ -370,6 +370,9 @@ fun ClientsWaitingScreen(navController: NavController) {
     }
 }
 
+// SOLO NECESITAS ACTUALIZAR LA FUNCIÓN ClientCard
+// Reemplaza tu función ClientCard actual con esta:
+
 @Composable
 fun ClientCard(cliente: ClienteTurno, navController: NavController) {
     Card(
@@ -404,7 +407,7 @@ fun ClientCard(cliente: ClienteTurno, navController: NavController) {
                     fontSize = 12.sp
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(0.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -424,7 +427,7 @@ fun ClientCard(cliente: ClienteTurno, navController: NavController) {
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     Column {
                         Text(
@@ -444,7 +447,10 @@ fun ClientCard(cliente: ClienteTurno, navController: NavController) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { navController.navigate("TurnoPendiente") },
+                    onClick = {
+                        // CAMBIO IMPORTANTE: Pasar el turnoId como parámetro
+                        navController.navigate("TurnoPendiente/${cliente.turnoId}")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD99C00)),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.height(36.dp)

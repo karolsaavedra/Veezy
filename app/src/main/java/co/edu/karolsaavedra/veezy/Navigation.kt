@@ -6,9 +6,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import co.edu.karolsaavedra.veezy.ViewCliente.*
 import co.edu.karolsaavedra.veezy.ViewGeneral.*
 import co.edu.karolsaavedra.veezy.ViewRestaurante.*
@@ -223,9 +225,13 @@ fun NavigationApp() {
                 val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
                 ChatDetailScreen(navController = navController, chatId = chatId)
             }
-             composable("TurnoPendiente") {
-                TurnoPendienteScreen(navController = navController)
-                }
+            composable(
+                route = "TurnoPendiente/{turnoId}",
+                arguments = listOf(navArgument("turnoId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val turnoId = backStackEntry.arguments?.getString("turnoId") ?: ""
+                TurnoPendienteScreen(navController, turnoId)
+            }
 
             composable(
                 route = "Burgerinfo/{restauranteNombre}/{productoId}"
