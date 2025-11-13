@@ -58,12 +58,12 @@ import com.google.firebase.firestore.Query
 
 @Composable
 fun PaginaReservas(
-    navController: NavController? = null, // Parámetro opcional para evitar error en Preview
+    navController: NavController? = null,
     onClickParaLlevar: () -> Unit = {},
     onClickRestaurante: () -> Unit = {},
     nombreRestaurante: String = "Desconocido",
 
-) {
+    ) {
     var personasRest by remember { mutableStateOf(0) }
     var hamburguesasRest by remember { mutableStateOf(0) }
     var papasRest by remember { mutableStateOf(0) }
@@ -83,7 +83,6 @@ fun PaginaReservas(
     Scaffold(
         containerColor = Color(0xFFFAF0F0),
         bottomBar = {
-            // Si hay navController, lo pasamos. Si no (Preview), mostramos sin él.
             navController?.let {
                 BottomBar(navController = it)
             } ?: BottomBarPreview()
@@ -96,14 +95,12 @@ fun PaginaReservas(
                 .padding(paddingValues)
                 .background(Color(0xFFFAF0F0))
         ) {
-            //  Encabezado burdeos
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(230.dp)
                     .background(Color(0xFF641717))
             ) {
-                // Aros decorativos
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -123,7 +120,6 @@ fun PaginaReservas(
                         .border(3.dp, Color(0xFFA979A7), CircleShape)
                 )
 
-                // Icono superior
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -165,13 +161,11 @@ fun PaginaReservas(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Selector de tipo de pedido
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
 
-                    // Restaurante
                     Button(
                         onClick = { opcionSeleccionada = "Restaurante" },
                         colors = ButtonDefaults.buttonColors(
@@ -188,7 +182,6 @@ fun PaginaReservas(
                         Text("Restaurante", fontWeight = FontWeight.Bold)
                     }
 
-                    // Para llevar
                     Button(
                         onClick = { opcionSeleccionada = "Para llevar" },
                         colors = ButtonDefaults.buttonColors(
@@ -208,12 +201,9 @@ fun PaginaReservas(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Fondo diferente según tipo
-
                 val fondoItems = if (opcionSeleccionada == "Restaurante") Color(0xFFFDECEC) else Color(
                     0xFFFDECEC
                 )
-                // ======= LISTA DE PRODUCTOS SEGÚN OPCIÓN =======
                 if (opcionSeleccionada == "Restaurante") {
                     ItemContador("Personas", personasRest, fondoItems,
                         onSumar = { personasRest++ },
@@ -234,7 +224,6 @@ fun PaginaReservas(
                 }
                 Spacer(modifier = Modifier.height(170.dp))
 
-                // ===== TURNO ASIGNADO =====
                 turnoAsignado?.let {
                     Text(
                         text = "Tu turno es: $it",
@@ -247,7 +236,6 @@ fun PaginaReservas(
                 Spacer(modifier = Modifier.height(20.dp))
 
 
-                //Botones inferiores
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -276,20 +264,19 @@ fun PaginaReservas(
 
                             val restauranteNombreFinal = nombreRestaurante.ifEmpty { "Desconocido" }
 
-                            /// buscar el último turno por nombre de restaurante
+                            // CAMBIO AQUÍ: Primero obtenemos todos los turnos del restaurante y tipo
                             FirebaseFirestore.getInstance().collection("turnos")
                                 .whereEqualTo("restauranteNombre", restauranteNombreFinal)
                                 .whereEqualTo("tipo", opcionSeleccionada)
-                                .orderBy("numero", Query.Direction.DESCENDING)
-                                .limit(1)
                                 .get()
                                 .addOnSuccessListener { documents ->
-                                    val ultimoTurno = if (documents.isEmpty) null else documents.first()
-                                    val ultimoNumero = ultimoTurno?.getLong("numero") ?: 0
+                                    // Buscamos el número más alto manualmente
+                                    val ultimoNumero = documents.mapNotNull {
+                                        it.getLong("numero")
+                                    }.maxOrNull() ?: 0
+
                                     val nuevoTurnoLong = ultimoNumero + 1
 
-
-                                    //crear datos del turno incluyendo el nombre del restaurante
                                     val turnoData = hashMapOf(
                                         "numero" to nuevoTurnoLong,
                                         "restauranteNombre" to restauranteNombreFinal,
@@ -299,7 +286,6 @@ fun PaginaReservas(
                                         "estado" to "pendiente"
                                     )
 
-                                    // campos adicionales según tipo
                                     if (opcionSeleccionada == "Restaurante") {
                                         turnoData["personas"] = personasRest
                                         turnoData["hamburguesas"] = hamburguesasRest
@@ -309,21 +295,22 @@ fun PaginaReservas(
                                         turnoData["papas"] = papasLlevar
                                     }
 
-                                    // guardar en Firestore
                                     FirebaseFirestore.getInstance().collection("turnos")
                                         .add(turnoData)
                                         .addOnSuccessListener {
                                             Log.d("Turnos", "Turno registrado correctamente: #$nuevoTurnoLong")
+                                            turnoAsignado = nuevoTurnoLong.toInt()
+                                            generandoTurno = false
 
-                                            // Mostrar mensaje de confirmación en pantalla
                                             Toast.makeText(
                                                 context,
-                                                "Turno guardado correctamente",
+                                                "Turno guardado correctamente: #$nuevoTurnoLong",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                         .addOnFailureListener { e ->
                                             Log.e("Turnos", "Error al guardar el turno", e)
+                                            generandoTurno = false
                                             Toast.makeText(
                                                 context,
                                                 "Error al guardar el turno. Intenta nuevamente.",
@@ -333,13 +320,14 @@ fun PaginaReservas(
                                 }
                                 .addOnFailureListener { e ->
                                     Log.e("Turnos", "Error al consultar turnos", e)
+                                    generandoTurno = false
                                     Toast.makeText(
                                         context,
                                         "Error al generar el turno. Intenta nuevamente.",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
-                             },
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFFC64F),
                             contentColor = Color.White
@@ -354,7 +342,6 @@ fun PaginaReservas(
                 Spacer(modifier = Modifier.height(80.dp))
             }
 
-            //Imagen hamburguesa sobrepuesta
             Image(
                 painter = painterResource(id = R.drawable.hamburguesa),
                 contentDescription = "Hamburguesa",
@@ -425,7 +412,6 @@ fun ItemContador(
 
 @Composable
 fun BottomBarPreview() {
-    // Versión de BottomBar vacía solo para el Preview (evita error de navegación)
     Box(
         modifier = Modifier
             .fillMaxWidth()

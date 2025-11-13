@@ -1,10 +1,10 @@
 package co.edu.karolsaavedra.veezy.menu
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -12,19 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,56 +26,57 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
-import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
-
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @Composable
-fun MenuRestauranteScreen(navController: NavHostController,
-                          onClickLogout: () -> Unit = {}
+fun MenuRestauranteScreen(
+    navController: NavHostController,
+    onClickLogout: () -> Unit = {}
 ) {
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
     val db = FirebaseFirestore.getInstance()
 
     var nombreRestaurante by remember { mutableStateOf("") }
+    var productos by remember { mutableStateOf<List<Producto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Cargar nombre del restaurante desde Firestore
-    LaunchedEffect(user) {
-        if (user != null) {
-            db.collection("restaurantes").document(user.uid)
-                .get()
-                .addOnSuccessListener { doc ->
-                    if (doc.exists()) {
-                        nombreRestaurante = doc.getString("nombreRestaurante") ?: "Mi Restaurante"
-                    } else {
-                        nombreRestaurante = "Restaurante"
-                    }
-                    isLoading = false
+    // Nueva carga con corutinas
+    LaunchedEffect(true) {
+        try {
+            if (user != null) {
+                val restauranteDoc = db.collection("restaurantes").document(user.uid).get().await()
+
+                nombreRestaurante = restauranteDoc.getString("nombreRestaurante") ?: "Mi Restaurante"
+
+                // Cargar productos del restaurante actual
+                val productosSnap = db.collection("restaurantes")
+                    .document(user.uid)
+                    .collection("productos")
+                    .get()
+                    .await()
+
+                val listaProductos = productosSnap.documents.mapNotNull { doc ->
+                    val producto = doc.toObject(Producto::class.java)
+                    producto?.copy(
+                        nombreRestaurante = nombreRestaurante // 👈 Aquí añadimos el nombre
+                    )
                 }
-                .addOnFailureListener {
-                    nombreRestaurante = "Error al cargar"
-                    isLoading = false
-                }
-        } else {
+
+                productos = listaProductos
+                Log.d("MenuRestauranteScreen", "Productos cargados: ${productos.size}")
+            }
+        } catch (e: Exception) {
+            Log.e("MenuRestauranteScreen", "Error al cargar datos: ${e.message}")
+        } finally {
             isLoading = false
         }
-    }
-
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color.White)
-        }
-        return
     }
 
 
@@ -134,7 +124,7 @@ fun MenuRestauranteScreen(navController: NavHostController,
                     .fillMaxSize()
                     .padding(bottom = 80.dp)
             ) {
-                // Header con ícono editar
+                // Header con botón de cerrar sesión
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -144,10 +134,10 @@ fun MenuRestauranteScreen(navController: NavHostController,
                 ) {
                     Button(
                         onClick = {
-                            FirebaseAuth.getInstance().signOut() // Cierra la sesión de Firebase
-                            navController.navigate("loginRestaurante") {  // nombre  de la ruta en el NavHost
-                                popUpTo("menuRestauranteScreen") { inclusive = true } // elimina pantallas previas
-                                }
+                            FirebaseAuth.getInstance().signOut()
+                            navController.navigate("loginRestaurante") {
+                                popUpTo("menuRestauranteScreen") { inclusive = true }
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD99C00)
@@ -164,7 +154,6 @@ fun MenuRestauranteScreen(navController: NavHostController,
                             fontSize = 16.sp
                         )
                     }
-
                 }
 
                 // Título
@@ -195,8 +184,8 @@ fun MenuRestauranteScreen(navController: NavHostController,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(burgerList) { burger ->
-                        BurgerCardR(burger = burger)
+                    items(productos) { producto ->
+                        ProductoCard(producto = producto)
                     }
 
                     item {

@@ -8,26 +8,94 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import co.edu.karolsaavedra.veezy.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @Composable
-fun BurgerInfo(burger: Burger) {
-    // Estado para controlar cuántas hamburguesas (calificación) están activas
+fun BurgerInfo(producto: Producto, productoId: String) {
+    val db = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val scope = rememberCoroutineScope()
+
     var rating by remember { mutableStateOf(0) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Cargar rating guardado desde Firebase - USANDO CLIENTES
+    LaunchedEffect(productoId, userId) {
+        if (userId == null) {
+            println("Usuario no autenticado")
+            isLoading = false
+            return@LaunchedEffect
+        }
+
+        try {
+            val snap = db.collection("clientes")
+                .document(userId)
+                .collection("preferencias")
+                .document(productoId)
+                .get()
+                .await()
+
+            if (snap.exists()) {
+                rating = snap.getLong("rating")?.toInt() ?: 0
+                println("Rating cargado: $rating para producto: $productoId")
+            } else {
+                println("No hay rating guardado para producto: $productoId")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("Error al cargar rating: ${e.message}")
+        } finally {
+            isLoading = false
+        }
+    }
+
+    // Función para guardar el rating - USANDO CLIENTES
+    fun guardarRating(newRating: Int) {
+        if (userId == null) {
+            println("Usuario no autenticado, no se puede guardar rating")
+            return
+        }
+
+        rating = newRating // Actualizar UI inmediatamente
+
+        scope.launch {
+            try {
+                db.collection("clientes")
+                    .document(userId)
+                    .collection("preferencias")
+                    .document(productoId)
+                    .set(
+                        mapOf(
+                            "rating" to newRating,
+                            "nombreProducto" to producto.nombreProducto,
+                            "productoId" to productoId,
+                            "timestamp" to System.currentTimeMillis()
+                        ),
+                        com.google.firebase.firestore.SetOptions.merge()
+                    )
+                    .await()
+
+                println("Rating guardado: $newRating para producto: $productoId en clientes/$userId/preferencias")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                println("Error al guardar rating: ${e.message}")
+            }
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -44,11 +112,10 @@ fun BurgerInfo(burger: Burger) {
                 .padding(0.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            // Imagen principal de la hamburguesa
+            // Imagen
             Image(
-                painter = painterResource(R.drawable.burger1),
-                contentDescription = burger.name,
+                painter = rememberAsyncImagePainter(model = producto.imagenUrl.ifEmpty { R.drawable.burger1 }),
+                contentDescription = producto.nombreProducto,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)
@@ -60,7 +127,7 @@ fun BurgerInfo(burger: Burger) {
 
             // Nombre
             Text(
-                text = burger.name,
+                text = producto.nombreProducto,
                 color = Color.White,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
@@ -69,9 +136,9 @@ fun BurgerInfo(burger: Burger) {
                     .padding(start = 5.dp)
             )
 
-            Spacer(modifier = Modifier.height(57.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-
+            // Rating (hamburguesas) + precio
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -80,20 +147,22 @@ fun BurgerInfo(burger: Burger) {
                 Row {
                     for (i in 1..5) {
                         Image(
-                            painter = painterResource(
+                            painter = androidx.compose.ui.res.painterResource(
                                 id = if (i <= rating) R.drawable.burger_yellow else R.drawable.burger_normal
                             ),
                             contentDescription = "Rating $i",
                             modifier = Modifier
                                 .size(30.dp)
                                 .padding(end = 4.dp)
-                                .clickable { rating = i }
+                                .clickable {
+                                    guardarRating(i)
+                                }
                         )
                     }
                 }
 
                 Text(
-                    text = burger.price,
+                    text = producto.precio,
                     color = Color(0xFFD4A017),
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
@@ -105,9 +174,8 @@ fun BurgerInfo(burger: Burger) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Descripción ---
             Text(
-                text = "Desde el downtown de Brooklyn… delicioso pan brioche con una corteza de miel de maple, doble carne tipo Oklahoma con doble queso cheddar importado, un picadillo de sweet panceta ahumado en nogal, papa golden string coronada con una deliciosa salsa creada exclusivamente para esta burger, rodaja de tomate rojo, cogollo europeo y pepinillo tipo kosher. Don’t stress, feel fresco.",
+                text = producto.descripcion.ifEmpty { "Delicioso producto disponible en nuestro menú." },
                 color = Color.White,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
