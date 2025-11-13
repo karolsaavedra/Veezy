@@ -31,7 +31,7 @@ class ChatRepository(
         clienteNombre: String,
         restauranteNombre: String
     ) {
-        val chatRef = firestore.collection("chat").document(chatId) // 👈 tu colección se llama "chat"
+        val chatRef = firestore.collection("chat").document(chatId) //tu colección se llama "chat"
         val snapshot = chatRef.get().await()
 
         if (!snapshot.exists()) {
@@ -43,7 +43,7 @@ class ChatRepository(
                 "restauranteNombre" to restauranteNombre,
                 "ultimoMensaje" to "",
                 "timestamp" to FieldValue.serverTimestamp(),
-                "participantes" to listOf(clienteId, restauranteId) // 👈 se agrega automáticamente
+                "participantes" to listOf(clienteId, restauranteId) // se agrega automáticamente
             )
             chatRef.set(meta).await()
         }

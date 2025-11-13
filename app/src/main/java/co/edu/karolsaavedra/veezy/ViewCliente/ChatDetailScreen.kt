@@ -49,7 +49,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
-    // 🔹 Inicializar chat (detectando automáticamente quién es cliente/restaurante)
+    //Inicializar chat (detectando automáticamente quién es cliente/restaurante)
     LaunchedEffect(chatId) {
         if (currentUser == null) {
             errorMessage = "Usuario no autenticado"
@@ -57,7 +57,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
             return@LaunchedEffect
         }
 
-        println("🔍 chatId: $chatId, Usuario: ${currentUser.uid}")
+        println("chatId: $chatId, Usuario: ${currentUser.uid}")
 
         val chatRef = firestore.collection("chat").document(chatId)
 
@@ -67,18 +67,18 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                     // Chat existe
                     val data = doc.data
                     if (data != null) {
-                        println("📦 Chat existe con datos: $data")
+                        println("Chat existe con datos: $data")
                         val esCliente = data["clienteId"] == currentUser.uid
                         nombreDestino = if (esCliente) {
                             data["restauranteNombre"] as? String ?: "Restaurante"
                         } else {
                             data["clienteNombre"] as? String ?: "Cliente"
                         }
-                        println("✅ Nombre cargado: $nombreDestino")
+                        println("Nombre cargado: $nombreDestino")
                     }
                     isLoading = false
                 } else {
-                    println("⚠️ Chat no existe, creando...")
+                    println("Chat no existe, creando...")
 
                     // Chat no existe, crear
                     val ids = chatId.split("_")
@@ -98,15 +98,15 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                                 // ids[0] es cliente
                                 clienteId = ids[0]
                                 restauranteId = ids[1]
-                                println("🔍 ids[0] es cliente")
+                                println("ids[0] es cliente")
                             } else {
                                 // ids[1] es cliente (ids[0] es restaurante)
                                 clienteId = ids[1]
                                 restauranteId = ids[0]
-                                println("🔍 ids[1] es cliente")
+                                println("ids[1] es cliente")
                             }
 
-                            println("👥 Cliente: $clienteId, Restaurante: $restauranteId")
+                            println("Cliente: $clienteId, Restaurante: $restauranteId")
 
                             // Obtener nombres
                             firestore.collection("clientes").document(clienteId).get()
@@ -121,7 +121,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                                                 ?: restauranteDoc.getString("nombre")
                                                 ?: "Restaurante"
 
-                                            println("📝 Nombres - Cliente: $clienteNombre, Restaurante: $restauranteNombre")
+                                            println("Nombres - Cliente: $clienteNombre, Restaurante: $restauranteNombre")
 
                                             val nuevoChat = hashMapOf(
                                                 "chatId" to chatId,
@@ -141,42 +141,42 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                                                     } else {
                                                         clienteNombre
                                                     }
-                                                    println("✅ Chat creado. Nombre: $nombreDestino")
+                                                    println("Chat creado. Nombre: $nombreDestino")
                                                     isLoading = false
                                                 }
                                                 .addOnFailureListener { e ->
                                                     errorMessage = "Error creando chat: ${e.message}"
-                                                    println("❌ Error al crear chat: ${e.message}")
+                                                    println("Error al crear chat: ${e.message}")
                                                     isLoading = false
                                                 }
                                         }
                                         .addOnFailureListener { e ->
                                             errorMessage = "Error cargando restaurante: ${e.message}"
-                                            println("❌ Error restaurante: ${e.message}")
+                                            println("Error restaurante: ${e.message}")
                                             isLoading = false
                                         }
                                 }
                                 .addOnFailureListener { e ->
                                     errorMessage = "Error cargando cliente: ${e.message}"
-                                    println("❌ Error cliente: ${e.message}")
+                                    println("Error cliente: ${e.message}")
                                     isLoading = false
                                 }
                         }
                         .addOnFailureListener { e ->
                             errorMessage = "Error detectando roles: ${e.message}"
-                            println("❌ Error detectando roles: ${e.message}")
+                            println("Error detectando roles: ${e.message}")
                             isLoading = false
                         }
                 }
             }
             .addOnFailureListener { e ->
                 errorMessage = "Error: ${e.message}"
-                println("❌ Error general: ${e.message}")
+                println("Error general: ${e.message}")
                 isLoading = false
             }
     }
 
-    // 🔹 Escuchar mensajes
+    //Escuchar mensajes
     DisposableEffect(chatId) {
         val chatRef = firestore.collection("chat").document(chatId)
 
@@ -185,7 +185,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    println("❌ Error mensajes: ${error.message}")
+                    println("Error mensajes: ${error.message}")
                     return@addSnapshotListener
                 }
 
@@ -197,12 +197,12 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                             timestamp = doc.get("timestamp")
                         )
                     } catch (e: Exception) {
-                        println("❌ Error parseando mensaje: ${e.message}")
+                        println("Error parseando mensaje: ${e.message}")
                         null
                     }
                 } ?: emptyList()
 
-                println("✅ ${mensajes.size} mensajes cargados")
+                println("${mensajes.size} mensajes cargados")
             }
 
         onDispose {
@@ -210,11 +210,11 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
         }
     }
 
-    // 🔹 Función enviar
+    //Función enviar
     fun enviarMensaje() {
         val texto = nuevoMensaje.trim()
         if (texto.isEmpty() || currentUser == null) {
-            println("❌ No se puede enviar: texto='$texto', user=${currentUser?.uid}")
+            println("No se puede enviar: texto='$texto', user=${currentUser?.uid}")
             return
         }
 
@@ -224,33 +224,33 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
             "timestamp" to FieldValue.serverTimestamp()
         )
 
-        println("📤 Enviando: $texto")
+        println("Enviando: $texto")
 
         firestore.collection("chat").document(chatId)
             .collection("mensajes")
             .add(mensaje)
             .addOnSuccessListener {
-                println("✅ Mensaje enviado con ID: ${it.id}")
+                println("Mensaje enviado con ID: ${it.id}")
 
                 // Actualizar último mensaje
                 firestore.collection("chat").document(chatId)
                     .update("ultimoMensaje", texto, "timestamp", FieldValue.serverTimestamp())
                     .addOnSuccessListener {
-                        println("✅ Último mensaje actualizado")
+                        println("Último mensaje actualizado")
                     }
                     .addOnFailureListener { e ->
-                        println("⚠️ Error actualizando último mensaje: ${e.message}")
+                        println("Error actualizando último mensaje: ${e.message}")
                     }
 
                 nuevoMensaje = ""
             }
             .addOnFailureListener { e ->
-                println("❌ Error enviando mensaje: ${e.message}")
+                println("Error enviando mensaje: ${e.message}")
                 errorMessage = "Error enviando: ${e.message}"
             }
     }
 
-    // 🎨 UI
+    // UI
     Scaffold(containerColor = Color(0xFF641717)) { paddingValues ->
         Box(
             modifier = Modifier
@@ -477,7 +477,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                         modifier = Modifier
                             .size(50.dp)
                             .clickable {
-                                println("🔘 Click enviar")
+                                println("Click enviar")
                                 enviarMensaje()
                             },
                         contentScale = ContentScale.Fit

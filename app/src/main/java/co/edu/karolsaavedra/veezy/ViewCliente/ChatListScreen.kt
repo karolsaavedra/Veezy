@@ -40,7 +40,7 @@ fun ChatListScreen(navController: NavController) {
     var userRole by remember { mutableStateOf("") }
     var chatList by remember { mutableStateOf<List<ChatItem>>(emptyList()) }
 
-    // 🔹 Obtener rol y nombre del usuario actual
+    //Obtener rol y nombre del usuario actual
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             val uid = currentUser.uid
@@ -63,12 +63,12 @@ fun ChatListScreen(navController: NavController) {
         }
     }
 
-    // 🔹 Cargar lista según el rol
+    //Cargar lista según el rol
     LaunchedEffect(userRole, currentUser) {
         if (currentUser == null || userRole.isEmpty()) return@LaunchedEffect
 
         if (userRole == "cliente") {
-            // ✅ CLIENTE: Mostrar todos los restaurantes disponibles
+            //CLIENTE: Mostrar todos los restaurantes disponibles
             firestore.collection("restaurantes")
                 .addSnapshotListener { snapshot, _ ->
                     chatList = snapshot?.documents?.map { doc ->

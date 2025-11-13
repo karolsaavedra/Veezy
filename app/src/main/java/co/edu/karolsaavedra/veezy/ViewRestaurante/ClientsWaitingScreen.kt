@@ -109,7 +109,7 @@ fun ClientsWaitingScreen(navController: NavController){ // Agregado correctament
                 }
             }
 
-            // 🔹 Contenido principal
+            //Contenido principal
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -141,7 +141,7 @@ fun ClientsWaitingScreen(navController: NavController){ // Agregado correctament
                 ClientCard()
             }
 
-            // 🔹 Imagen decorativa
+            //Imagen decorativa
             Image(
                 painter = painterResource(id = R.drawable.tocino),
                 contentDescription = "tocino",
@@ -171,7 +171,7 @@ fun ClientCard() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // 🔹 Información del cliente
+            //Información del cliente
             Column {
                 Text(
                     text = "ID Cliente",
@@ -209,7 +209,7 @@ fun ClientCard() {
                 }
             }
 
-            // 🔹 Icono del cliente
+            // Icono del cliente
             Box(
                 modifier = Modifier
                     .size(80.dp)
