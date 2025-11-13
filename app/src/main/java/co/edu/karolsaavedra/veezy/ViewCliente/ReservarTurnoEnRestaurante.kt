@@ -1,5 +1,6 @@
 package co.edu.karolsaavedra.veezy.ViewCliente
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -266,8 +267,8 @@ fun PaginaReservas(
                         onClick = {
                             generandoTurno = true
 
-                            val clienteUid = auth.currentUser?.uid
-                            if (clienteUid == null) {
+                            val clienteId = auth.currentUser?.uid
+                            if (clienteId == null) {
                                 Toast.makeText(context, "Error: usuario no autenticado", Toast.LENGTH_SHORT).show()
                                 generandoTurno = false
                                 return@Button
@@ -276,26 +277,26 @@ fun PaginaReservas(
                             val restauranteNombreFinal = nombreRestaurante.ifEmpty { "Desconocido" }
 
                             /// buscar el último turno por nombre de restaurante
-                            db.collection("turnos")
+                            FirebaseFirestore.getInstance().collection("turnos")
                                 .whereEqualTo("restauranteNombre", restauranteNombreFinal)
+                                .whereEqualTo("tipo", opcionSeleccionada)
                                 .orderBy("numero", Query.Direction.DESCENDING)
                                 .limit(1)
                                 .get()
-                                .addOnSuccessListener { snapshot ->
-                                    val ultimoTurno: Long = if (!snapshot.isEmpty)
-                                        snapshot.documents[0].getLong("numero") ?: 0L
-                                    else 0L
+                                .addOnSuccessListener { documents ->
+                                    val ultimoTurno = if (documents.isEmpty) null else documents.first()
+                                    val ultimoNumero = ultimoTurno?.getLong("numero") ?: 0
+                                    val nuevoTurnoLong = ultimoNumero + 1
 
-                                    val nuevoTurnoLong: Long = ultimoTurno + 1L
-                                    val nombreRestauranteFinal = nombreRestaurante.ifEmpty { "Desconocido" }
 
                                     //crear datos del turno incluyendo el nombre del restaurante
                                     val turnoData = hashMapOf(
                                         "numero" to nuevoTurnoLong,
                                         "restauranteNombre" to restauranteNombreFinal,
                                         "tipo" to opcionSeleccionada,
-                                        "clienteUid" to clienteUid,
-                                        "timestamp" to com.google.firebase.Timestamp.now()
+                                        "clienteId" to clienteId,
+                                        "timestamp" to com.google.firebase.Timestamp.now(),
+                                        "estado" to "pendiente"
                                     )
 
                                     // campos adicionales según tipo
@@ -309,40 +310,34 @@ fun PaginaReservas(
                                     }
 
                                     // guardar en Firestore
-                                    db.collection("turnos")
+                                    FirebaseFirestore.getInstance().collection("turnos")
                                         .add(turnoData)
-                                        .addOnSuccessListener { turnoRef ->
-                                            val clienteUpdates = mapOf(
-                                                "turnoNumero" to nuevoTurnoLong,
-                                                "turnoRefId" to turnoRef.id,
-                                                "turnoRestaurante" to restauranteNombreFinal
-                                            )
+                                        .addOnSuccessListener {
+                                            Log.d("Turnos", "Turno registrado correctamente: #$nuevoTurnoLong")
 
-                                            db.collection("clientes").document(clienteUid)
-                                                .update(clienteUpdates)
-                                                .addOnSuccessListener {
-                                                    turnoAsignado = nuevoTurnoLong.toInt()
-                                                    generandoTurno = false
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Turno #${nuevoTurnoLong} en $restauranteNombreFinal reservado correctamente",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                    navController?.navigate("InfoProducto")
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    generandoTurno = false
-                                                    Toast.makeText(context, "Error al guardar turno en cliente: ${e.message}", Toast.LENGTH_SHORT).show()
-                                                }
+                                            // Mostrar mensaje de confirmación en pantalla
+                                            Toast.makeText(
+                                                context,
+                                                "Turno guardado correctamente",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                         .addOnFailureListener { e ->
-                                            generandoTurno = false
-                                            Toast.makeText(context, "Error al registrar el turno: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            Log.e("Turnos", "Error al guardar el turno", e)
+                                            Toast.makeText(
+                                                context,
+                                                "Error al guardar el turno. Intenta nuevamente.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                 }
                                 .addOnFailureListener { e ->
-                                    generandoTurno = false
-                                    Toast.makeText(context, "Error al obtener último turno: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Log.e("Turnos", "Error al consultar turnos", e)
+                                    Toast.makeText(
+                                        context,
+                                        "Error al generar el turno. Intenta nuevamente.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                              },
                         colors = ButtonDefaults.buttonColors(

@@ -6,15 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -49,6 +43,7 @@ fun TurnoScreen(navController: NavController? = null) {
     var nombreCliente by remember { mutableStateOf("") }
     var codigoCliente by remember { mutableStateOf("") }
     var nombreRestaurante by remember { mutableStateOf("") }
+    var ultimoTurno by remember { mutableStateOf<Map<String, Any>?>(null) } // Estado para el último turno
 
     // NUEVO: Cargar información del cliente y su turno
     LaunchedEffect(userId) {
@@ -66,18 +61,21 @@ fun TurnoScreen(navController: NavController? = null) {
                             .whereEqualTo("clienteId", userId)
                             .get()
                             .addOnSuccessListener { snapshot ->
-                                val ultimoTurno = snapshot.documents.maxByOrNull {
+                                val docMax = snapshot.documents.maxByOrNull {
                                     it.getTimestamp("timestamp")?.toDate()?.time ?: 0L
                                 }
-                                nombreRestaurante =
-                                    ultimoTurno?.getString("restauranteId") ?: "No asignado"
+                                ultimoTurno = docMax?.data
+                                nombreRestaurante = docMax?.getString("restauranteId") ?: "No asignado"
+                                turno = docMax?.getLong("turno")?.toInt() ?: 0
                             }
                     }
                 }
         }
     }
 
-    val cadena = "Turno Cliente"
+    // Valor dinámico para generar QR
+    val qrValue = ultimoTurno?.get("qrValue") as? String ?: "$userId-$turno"
+
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -96,7 +94,6 @@ fun TurnoScreen(navController: NavController? = null) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Botón amarillo (X)
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -111,7 +108,6 @@ fun TurnoScreen(navController: NavController? = null) {
                     )
                 }
 
-                // Botón gris con íconos
                 Row(
                     modifier = Modifier
                         .width(85.dp)
@@ -141,7 +137,7 @@ fun TurnoScreen(navController: NavController? = null) {
                     .fillMaxWidth(0.9f)
                     .fillMaxHeight(0.82f)
                     .align(Alignment.Center)
-                    .offset(y = 40.dp) // desplazamiento real hacia abajo
+                    .offset(y = 40.dp)
                     .shadow(
                         elevation = 6.dp,
                         spotColor = Color(0x40000000),
@@ -157,7 +153,6 @@ fun TurnoScreen(navController: NavController? = null) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    // ===== FILA DE ESTRELLAS SUPERIORES =====
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -176,7 +171,6 @@ fun TurnoScreen(navController: NavController? = null) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ===== TÍTULO "TURNO" =====
                     Text(
                         text = "Turno",
                         style = TextStyle(
@@ -190,9 +184,8 @@ fun TurnoScreen(navController: NavController? = null) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // ===== NÚMERO DEL TURNO DINÁMICO =====
                     Text(
-                        text = turno?.toString() ?: "--", //NUEVO: número real del turno
+                        text = turno?.toString() ?: "--",
                         style = TextStyle(
                             fontSize = 90.sp,
                             fontFamily = FontFamily(Font(R.font.afacad)),
@@ -204,10 +197,6 @@ fun TurnoScreen(navController: NavController? = null) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // ===== FILA DÍA Y ESTADO =====
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -218,7 +207,6 @@ fun TurnoScreen(navController: NavController? = null) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ===== FILA CÓDIGO Y TIEMPO =====
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -229,12 +217,10 @@ fun TurnoScreen(navController: NavController? = null) {
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ===== USUARIO =====
                     InfoColumn("Usuario", nombreCliente.ifEmpty { "--" })
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ===== RESTAURANTE =====
                     Text(
                         text = "Restaurante",
                         style = TextStyle(
@@ -245,7 +231,7 @@ fun TurnoScreen(navController: NavController? = null) {
                             textAlign = TextAlign.Center
                         )
                     )
-                    // ===== Nombre restaurante =====
+
                     Text(
                         text = nombreRestaurante.ifEmpty { "Cargando..." },
                         style = TextStyle(
@@ -257,8 +243,6 @@ fun TurnoScreen(navController: NavController? = null) {
                         )
                     )
 
-
-
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // ===== CÓDIGO QR =====
@@ -268,12 +252,15 @@ fun TurnoScreen(navController: NavController? = null) {
                             .background(color = Color(0x96EBA3A3), shape = RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Barcode(value = cadena, type = BarcodeType.QR_CODE, modifier = Modifier.size(200.dp))
+                        Barcode(
+                            value = qrValue,
+                            type = BarcodeType.QR_CODE,
+                            modifier = Modifier.size(200.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ===== FILA DE ESTRELLAS INFERIORES =====
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

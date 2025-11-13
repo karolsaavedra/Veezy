@@ -2,11 +2,12 @@ package co.edu.karolsaavedra.veezy.ViewCliente
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -17,15 +18,42 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
 import co.edu.karolsaavedra.veezy.R
+import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.simonsickle.compose.barcodes.Barcode
+import com.simonsickle.compose.barcodes.BarcodeType
 
 @Composable
 fun ProductosScreen(navController: NavController) {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val userId = auth.currentUser?.uid
+    var turno by remember { mutableStateOf<Int?>(null) }
+    var ultimoTurno by remember { mutableStateOf<Map<String, Any>?>(null) }
+
+    // Obtener último turno del usuario
+    LaunchedEffect(userId) {
+        if(userId != null){
+            db.collection("turnos")
+                .whereEqualTo("clienteId", userId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val docMax = snapshot.documents.maxByOrNull {
+                        it.getTimestamp("timestamp")?.toDate()?.time ?: 0L
+                    }
+                    ultimoTurno = docMax?.data
+                    turno = docMax?.getLong("turno")?.toInt() ?: 0
+                }
+        }
+    }
+
+    val qrValue = ultimoTurno?.get("qrValue") as? String ?: "$userId-$turno"
+
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -45,7 +73,6 @@ fun ProductosScreen(navController: NavController) {
                     .align(Alignment.TopStart),
                 contentScale = ContentScale.None
             )
-
             Image(
                 painter = painterResource(id = R.drawable.group_5),
                 contentDescription = "Círculo superior derecho",
@@ -145,19 +172,37 @@ fun ProductosScreen(navController: NavController) {
                 ) {
                     TurnoCard(
                         color = Color(0xFF641717),
+                        navController = navController,
                         modifier = Modifier
                             .offset(y = -60.dp)
                             .shadow(8.dp, RoundedCornerShape(20.dp))
                     )
                     TurnoCard(
                         color = Color(0xFF863939),
+                        navController = navController,
                         modifier = Modifier
                             .offset(y = -30.dp)
                             .shadow(8.dp, RoundedCornerShape(20.dp))
                     )
                     TurnoCard(
                         color = Color(0xFFCB6363),
+                        navController = navController,
                         modifier = Modifier.shadow(8.dp, RoundedCornerShape(20.dp))
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // ===== QR DINÁMICO =====
+                Box(
+                    modifier = Modifier
+                        .size(90.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Barcode(
+                        value = qrValue,
+                        type = BarcodeType.QR_CODE,
+                        modifier = Modifier.size(90.dp)
                     )
                 }
             }
@@ -184,7 +229,8 @@ fun ProductosScreen(navController: NavController) {
 
             // ===== BARRA INFERIOR =====
             BottomBar(
-                navController = navController, isBackgroundWine = false,
+                navController = navController,
+                isBackgroundWine = false,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -192,13 +238,17 @@ fun ProductosScreen(navController: NavController) {
 }
 
 @Composable
-fun TurnoCard(color: Color, modifier: Modifier = Modifier) {
+fun TurnoCard(color: Color,  navController: NavController, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .width(382.dp)
             .height(160.dp)
             .background(color, shape = RoundedCornerShape(20.dp))
             .padding(16.dp)
+            .clickable {
+                // Navega a TurnoScreen cuando se toca la tarjeta
+                navController.navigate("TurnoGenerado")
+            }
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -214,7 +264,6 @@ fun TurnoCard(color: Color, modifier: Modifier = Modifier) {
                     color = Color(0xFFFFC64F)
                 )
             )
-
             Box(
                 modifier = Modifier
                     .size(110.dp)
@@ -230,14 +279,4 @@ fun TurnoCard(color: Color, modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewProductosScreen() {
-    // Preview sin navController
-    // Puedes crear un FakeNavController si da error
-    // Ejemplo:
-    // val navController = rememberNavController()
-    // ProductosScreen(navController)
 }
