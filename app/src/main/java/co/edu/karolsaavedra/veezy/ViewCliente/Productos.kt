@@ -239,16 +239,6 @@ fun ProductosScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.menu),
-                    contentDescription = "Menú",
-                    modifier = Modifier.size(32.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.bell),
-                    contentDescription = "Notificaciones",
-                    modifier = Modifier.size(32.dp)
-                )
             }
 
             BottomBar(

@@ -107,7 +107,7 @@ fun QRScreen(navController: NavController) {
                         painter = painterResource(id = R.drawable.qr_code___iconly_pro), // tu ícono personalizado
                         contentDescription = "QR Icon",
                         tint = Color.DarkGray,
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(200.dp)
                     )
                 }
 
@@ -138,11 +138,6 @@ fun QRScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.menu),
-                    contentDescription = "Menú",
-                    modifier = Modifier.size(32.dp)
-                )
             }
 
             // ===== BARRA INFERIOR =====

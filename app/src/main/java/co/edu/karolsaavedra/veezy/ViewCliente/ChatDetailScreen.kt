@@ -4,8 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +30,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.launch
 
 data class Mensaje(
     val texto: String = "",
@@ -48,6 +49,9 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
     var nombreDestino by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
+
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
 
     //Inicializar chat (detectando automáticamente quién es cliente/restaurante)
     LaunchedEffect(chatId) {
@@ -88,7 +92,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                         return@addOnSuccessListener
                     }
 
-                    // 🔧 DETECTAR AUTOMÁTICAMENTE QUIÉN ES QUIÉN
+                    //  DETECTAR AUTOMÁTICAMENTE QUIÉN ES QUIÉN
                     firestore.collection("clientes").document(ids[0]).get()
                         .addOnSuccessListener { doc0 ->
                             val clienteId: String
@@ -116,7 +120,7 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
 
                                             val clienteNombre = clienteDoc.getString("nombre") ?: "Cliente"
 
-                                            // 🔧 Buscar nombre del restaurante (puede estar en nombreRestaurante o nombre)
+                                            // Buscar nombre del restaurante (puede estar en nombreRestaurante o nombre)
                                             val restauranteNombre = restauranteDoc.getString("nombreRestaurante")
                                                 ?: restauranteDoc.getString("nombre")
                                                 ?: "Restaurante"
@@ -207,6 +211,15 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
 
         onDispose {
             listener.remove()
+        }
+    }
+
+    // Auto-scroll al final cuando llegan nuevos mensajes
+    LaunchedEffect(mensajes.size) {
+        if (mensajes.isNotEmpty()) {
+            coroutineScope.launch {
+                scrollState.animateScrollTo(scrollState.maxValue)
+            }
         }
     }
 
@@ -344,13 +357,6 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                             }
                         }
                     }
-
-                    Image(
-                        painter = painterResource(id = R.drawable.call),
-                        contentDescription = "Llamar",
-                        modifier = Modifier.size(35.dp),
-                        contentScale = ContentScale.Fit
-                    )
                 }
 
                 Box(
@@ -362,14 +368,16 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Lista mensajes
-                LazyColumn(
+                // Lista mensajes con scroll vertical
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        .verticalScroll(scrollState)
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(mensajes) { mensaje ->
+                    mensajes.forEach { mensaje ->
                         val esMio = mensaje.emisorId == currentUser?.uid
 
                         Box(
@@ -401,6 +409,9 @@ fun ChatDetailScreen(navController: NavController, chatId: String) {
                             }
                         }
                     }
+
+                    // Espaciador para que el último mensaje no quede tapado
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
 

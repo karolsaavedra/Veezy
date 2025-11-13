@@ -119,7 +119,7 @@ fun LoginRestauranteScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(140.dp))
 
 
             Row(

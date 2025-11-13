@@ -205,14 +205,6 @@ fun NavigationApp() {
                     nombreRestaurante = restauranteNombre
                 )
             }
-            composable("ReservarTurnoParallevar") {
-                PaginaReservasParallevar(navController = navController,
-                onClickParaRestaurante = { navController.navigate("ReservarTurnoRestaurante") },
-                onClickParaLlevar = { navController.navigate("ReservarTurnoParallevar") }
-
-                )
-            }
-
 
             composable("TurnoGenerado") { TurnoScreen(navController = navController) }
 

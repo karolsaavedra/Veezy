@@ -118,7 +118,7 @@ fun MenuScreen(navController: NavController) {
                         contentDescription = "Menú",
                         tint = Color.White,
                         modifier = Modifier
-                            .size(28.dp)
+                            .size(32.dp)
                             .clickable {
                                 navController.navigate("settingsCliente")
                             }

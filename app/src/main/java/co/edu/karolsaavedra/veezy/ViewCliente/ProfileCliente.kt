@@ -33,6 +33,7 @@ fun ProfileClienteScreen(
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
 
     val auth = FirebaseAuth.getInstance()
@@ -50,6 +51,7 @@ fun ProfileClienteScreen(
                         nombre = doc.getString("nombre") ?: ""
                         apellido = doc.getString("apellido") ?: ""
                         correo = doc.getString("email") ?: user.email.orEmpty()
+                        telefono = doc.getString("telefono") ?: ""
                     }
                     isLoading = false
                 }
@@ -121,11 +123,6 @@ fun ProfileClienteScreen(
                             fontSize = 22.sp,
                             color = Color.White
                         )
-                        Text(
-                            text = correo.ifEmpty { "correo@ejemplo.com" },
-                            fontSize = 15.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
                     }
                 }
 
@@ -134,29 +131,80 @@ fun ProfileClienteScreen(
                 //  Información del cliente
                 Column(modifier = Modifier.padding(horizontal = 30.dp)) {
 
-                    OutlinedTextField(
-                        value = nombre,
-                        onValueChange = { },
-                        label = { Text("Nombre") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true
-                    )
+                    // Campo Nombre
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Nombre",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4A0000)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = nombre.ifEmpty { "No especificado" },
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Divider(
+                            color = Color.LightGray,
+                            thickness = 1.dp
+                        )
+                    }
 
-                    OutlinedTextField(
-                        value = apellido,
-                        onValueChange = { },
-                        label = { Text("Apellido") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true
-                    )
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                    OutlinedTextField(
-                        value = correo,
-                        onValueChange = { },
-                        label = { Text("Correo") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true
-                    )
+                    // Campo Apellido
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Apellido",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4A0000)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = apellido.ifEmpty { "No especificado" },
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Divider(
+                            color = Color.LightGray,
+                            thickness = 1.dp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Campo Correo
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Correo",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4A0000)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = correo.ifEmpty { "No especificado" },
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Divider(
+                            color = Color.LightGray,
+                            thickness = 1.dp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Campo Número
+                    Column(modifier = Modifier.fillMaxWidth()) {
+
+
+                    }
 
                     Spacer(modifier = Modifier.height(28.dp))
 

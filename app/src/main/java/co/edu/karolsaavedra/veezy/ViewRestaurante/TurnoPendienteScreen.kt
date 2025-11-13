@@ -3,12 +3,11 @@ package co.edu.karolsaavedra.veezy.ViewRestaurante
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.R
+import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
@@ -56,21 +56,18 @@ fun TurnoPendienteScreen(navController: NavController, turnoId: String) {
                     numeroTurno = turnoDoc.getLong("numero")
                     tipoPedido = turnoDoc.getString("tipo") ?: "N/A"
 
-                    // Obtener cantidades según el tipo
                     if (tipoPedido == "Restaurante") {
                         personas = turnoDoc.getLong("personas")?.toInt()
                     }
                     hamburguesas = turnoDoc.getLong("hamburguesas")?.toInt()
                     papas = turnoDoc.getLong("papas")?.toInt()
 
-                    // Formatear hora
                     val timestamp = turnoDoc.getTimestamp("timestamp")
                     if (timestamp != null) {
                         val dateFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
                         horaTurno = dateFormat.format(timestamp.toDate())
                     }
 
-                    // Obtener datos del cliente
                     val clienteId = turnoDoc.getString("clienteId")
                     if (!clienteId.isNullOrEmpty()) {
                         db.collection("clientes").document(clienteId).get()
@@ -129,20 +126,17 @@ fun TurnoPendienteScreen(navController: NavController, turnoId: String) {
                     Button(
                         onClick = {
                             isDeleting = true
-                            // Eliminar el turno de la base de datos
                             db.collection("turnos").document(turnoId)
                                 .delete()
                                 .addOnSuccessListener {
                                     isDeleting = false
                                     showDialog = false
-                                    // Navegar de regreso y limpiar el stack
                                     navController.popBackStack()
                                 }
                                 .addOnFailureListener { error ->
                                     isDeleting = false
                                     showDialog = false
-                                    // Opcional: mostrar mensaje de error
-                                    android.util.Log.e("TurnoPendiente", "Error al eliminar turno", error)
+                                    Log.e("TurnoPendiente", "Error al eliminar turno", error)
                                 }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -173,72 +167,54 @@ fun TurnoPendienteScreen(navController: NavController, turnoId: String) {
     }
 
     Scaffold(
-        containerColor = Color(0xFFFAF0F0),
+        containerColor = Color(0xFF641717)
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFFFAF0F0))
+                .background(Color(0xFF641717))
         ) {
-            Box(
+            // ===== CÍRCULOS DECORATIVOS =====
+            Image(
+                painter = painterResource(id = R.drawable.group_3),
+                contentDescription = "Círculo superior izquierdo",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(230.dp)
-                    .background(Color(0xFF641717))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .offset(x = (-30).dp, y = 80.dp)
-                        .border(2.dp, Color(0xFFA979A7), CircleShape)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .offset(x = 250.dp, y = -30.dp)
-                        .border(2.dp, Color(0xFFA979A7), CircleShape)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(110.dp)
-                        .offset(x = 260.dp, y = -40.dp)
-                        .border(3.dp, Color(0xFFA979A7), CircleShape)
-                )
+                    .width(110.dp)
+                    .height(250.dp)
+                    .align(Alignment.TopStart),
+                contentScale = ContentScale.None
+            )
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-            }
+            Image(
+                painter = painterResource(id = R.drawable.group_5),
+                contentDescription = "Círculo superior derecho",
+                modifier = Modifier
+                    .width(110.dp)
+                    .height(65.dp)
+                    .align(Alignment.TopEnd),
+                contentScale = ContentScale.None
+            )
 
+            // ===== PANEL BLANCO PRINCIPAL =====
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 160.dp)
+                    .fillMaxWidth()
+                    .height(720.dp)
+                    .align(Alignment.BottomCenter)
                     .background(
-                        Color.White,
-                        shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp)
+                        color = Color.White,
+                        shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
                     )
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 24.dp, vertical = 32.dp)
             ) {
-                Spacer(modifier = Modifier.height(60.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
+                // ===== TÍTULO =====
                 Text(
                     text = "Turno",
                     color = Color(0xFF641717),
-                    fontSize = 30.sp,
+                    fontSize = 36.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -249,105 +225,114 @@ fun TurnoPendienteScreen(navController: NavController, turnoId: String) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Box(
+                // ===== CONTENIDO CON SCROLL =====
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x85D9D9D9), RoundedCornerShape(16.dp))
-                        .padding(16.dp)
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0x85D9D9D9), RoundedCornerShape(16.dp))
+                            .padding(16.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = "ID cliente",
-                                color = Color(0xFF7F4F4F),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .background(Color.White, RoundedCornerShape(12.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Cliente",
-                                    tint = Color(0xFF7F4F4F),
-                                    modifier = Modifier.size(36.dp)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        InfoRow(label = "Nombre:", value = nombreCliente.ifEmpty { "-" })
-                        InfoRow(label = "Apellido:", value = apellidoCliente.ifEmpty { "-" })
-
-                        // Solo mostrar "Personas" si es tipo Restaurante
-                        if (tipoPedido == "Restaurante") {
-                            InfoRow(label = "Personas:", value = personas?.toString() ?: "0")
-                        }
-
-                        InfoRow(label = "Hamburguesas:", value = hamburguesas?.toString() ?: "0")
-                        InfoRow(label = "Papas:", value = papas?.toString() ?: "0")
-                        InfoRow(label = "Tipo de pedido:", value = tipoPedido.ifEmpty { "-" })
-                        InfoRow(label = "Turno:", value = numeroTurno?.toString() ?: "-")
-                        InfoRow(label = "Hora:", value = horaTurno.ifEmpty { "-" })
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            // Botón Volver
-                            OutlinedButton(
-                                onClick = { navController.navigateUp() },
-                                shape = RoundedCornerShape(50.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(45.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = Color(0xFF641717)
-                                )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Volver",
+                                    text = "ID cliente",
+                                    color = Color(0xFF7F4F4F),
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
+                                    fontSize = 18.sp
                                 )
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .background(Color.White, RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Cliente",
+                                        tint = Color(0xFF7F4F4F),
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                }
                             }
 
-                            // Botón Confirmar
-                            Button(
-                                onClick = { showDialog = true },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFFC64F)
-                                ),
-                                shape = RoundedCornerShape(50.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(45.dp)
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            InfoRow(label = "Nombre:", value = nombreCliente.ifEmpty { "-" })
+                            InfoRow(label = "Apellido:", value = apellidoCliente.ifEmpty { "-" })
+
+                            if (tipoPedido == "Restaurante") {
+                                InfoRow(label = "Personas:", value = personas?.toString() ?: "0")
+                            }
+
+                            InfoRow(label = "Hamburguesas:", value = hamburguesas?.toString() ?: "0")
+                            InfoRow(label = "Papas:", value = papas?.toString() ?: "0")
+                            InfoRow(label = "Tipo de pedido:", value = tipoPedido.ifEmpty { "-" })
+                            InfoRow(label = "Turno:", value = numeroTurno?.toString() ?: "-")
+                            InfoRow(label = "Hora:", value = horaTurno.ifEmpty { "-" })
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text(
-                                    text = "Confirmar",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
+                                OutlinedButton(
+                                    onClick = { navController.navigateUp() },
+                                    shape = RoundedCornerShape(50.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(45.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Color(0xFF641717)
+                                    )
+                                ) {
+                                    Text(
+                                        text = "Volver",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                }
+
+                                Button(
+                                    onClick = { showDialog = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFFFC64F)
+                                    ),
+                                    shape = RoundedCornerShape(50.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(45.dp)
+                                ) {
+                                    Text(
+                                        text = "Confirmar",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                }
                             }
                         }
                     }
+
+                    // Espacio extra para evitar que la BottomBar tape el contenido
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
 
+            // ===== IMAGEN DECORATIVA =====
             Image(
                 painter = painterResource(id = R.drawable.papas),
                 contentDescription = "papas",
@@ -356,6 +341,30 @@ fun TurnoPendienteScreen(navController: NavController, turnoId: String) {
                     .align(Alignment.TopCenter)
                     .offset(y = 60.dp, x = 70.dp),
                 contentScale = ContentScale.Crop
+            )
+
+            // ===== ÍCONOS DE MENÚ (ARRIBA) =====
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 50.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Image(
+                        painter = painterResource(id = R.drawable.arrow___left_2___iconly_pro),
+                        contentDescription = "Volver",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+
+            // ===== BARRA INFERIOR =====
+            BottomBarRestaurante(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                navController = navController,
+                isBackgroundWine = false
             )
         }
     }

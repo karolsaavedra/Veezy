@@ -98,7 +98,7 @@ fun BottomBarRestaurante(
     ) {
         val items = listOf(
             Pair(R.drawable.profile___iconly_pro, "profileRestaurante"),
-            Pair(R.drawable.scan, "scanRestaurante"),
+            Pair(R.drawable.scan___iconly_pro, "scanRestaurante"),
             Pair(R.drawable.home___iconly_pro, "menuRestauranteScreen"),
             Pair(R.drawable.chat_2___iconly_pro, "chatRestaurante"),
         )

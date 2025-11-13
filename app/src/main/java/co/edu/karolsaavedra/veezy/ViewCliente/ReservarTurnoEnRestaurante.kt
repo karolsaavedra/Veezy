@@ -126,12 +126,6 @@ fun PaginaReservas(
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Menú",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
                 }
             }
 
@@ -222,7 +216,7 @@ fun PaginaReservas(
                         onSumar = { papasLlevar++ },
                         onRestar = { if (papasLlevar > 0) papasLlevar-- })
                 }
-                Spacer(modifier = Modifier.height(170.dp))
+                Spacer(modifier = Modifier.height(80.dp))
 
                 turnoAsignado?.let {
                     Text(
@@ -335,7 +329,7 @@ fun PaginaReservas(
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.width(150.dp)
                     ) {
-                        Text("Reservar turno", fontWeight = FontWeight.Bold)
+                        Text("Reservar", fontWeight = FontWeight.Bold)
                     }
                 }
 

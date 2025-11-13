@@ -51,32 +51,32 @@ fun ChatScreen(navController: NavController) {
     // 🔹 1. Determinar rol del usuario
     LaunchedEffect(currentUser) {
         currentUser?.uid?.let { uid ->
-            println("🔍 Buscando usuario: $uid")
+            println("Buscando usuario: $uid")
 
             firestore.collection("clientes").document(uid).get()
                 .addOnSuccessListener { clienteDoc ->
                     if (clienteDoc.exists()) {
                         userName = clienteDoc.getString("nombre")
                         userRole = "cliente"
-                        println("✅ Usuario es CLIENTE: $userName")
+                        println("Usuario es CLIENTE: $userName")
                     } else {
                         firestore.collection("restaurantes").document(uid).get()
                             .addOnSuccessListener { restauranteDoc ->
                                 if (restauranteDoc.exists()) {
                                     userName = restauranteDoc.getString("nombre")
                                     userRole = "restaurante"
-                                    println("✅ Usuario es RESTAURANTE: $userName")
+                                    println("Usuario es RESTAURANTE: $userName")
                                 } else {
-                                    println("❌ Usuario no encontrado en ninguna colección")
+                                    println("Usuario no encontrado en ninguna colección")
                                 }
                             }
                             .addOnFailureListener { e ->
-                                println("❌ Error buscando en restaurantes: ${e.message}")
+                                println("Error buscando en restaurantes: ${e.message}")
                             }
                     }
                 }
                 .addOnFailureListener { e ->
-                    println("❌ Error buscando en clientes: ${e.message}")
+                    println("Error buscando en clientes: ${e.message}")
                 }
         }
     }
@@ -89,20 +89,20 @@ fun ChatScreen(navController: NavController) {
         isLoading = true
 
         if (userRole == "cliente") {
-            // ✅ CLIENTE: Mostrar TODOS los restaurantes + último mensaje si existe chat
-            println("📋 Cargando lista de restaurantes con últimos mensajes...")
+            // CLIENTE: Mostrar TODOS los restaurantes + último mensaje si existe chat
+            println("Cargando lista de restaurantes con últimos mensajes...")
 
             firestore.collection("restaurantes")
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        println("❌ Error cargando restaurantes: ${error.message}")
+                        println("Error cargando restaurantes: ${error.message}")
                         displayList = emptyList()
                         isLoading = false
                         return@addSnapshotListener
                     }
 
                     if (snapshot != null) {
-                        println("📦 ${snapshot.documents.size} restaurantes encontrados")
+                        println("${snapshot.documents.size} restaurantes encontrados")
 
                         // Para cada restaurante, buscar si existe un chat
                         val restaurantes = snapshot.documents.map { doc ->
@@ -151,12 +151,12 @@ fun ChatScreen(navController: NavController) {
                                         displayList = itemsConMensaje.sortedByDescending {
                                             it.ultimoMensaje.isNotEmpty()
                                         }
-                                        println("✅ Total restaurantes con mensajes: ${displayList.size}")
+                                        println("Total restaurantes con mensajes: ${displayList.size}")
                                         isLoading = false
                                     }
                                 }
                                 .addOnFailureListener { e ->
-                                    println("⚠️ Error buscando chat para $restauranteNombre: ${e.message}")
+                                    println("Error buscando chat para $restauranteNombre: ${e.message}")
 
                                     // Agregar sin último mensaje
                                     itemsConMensaje.add(
@@ -185,14 +185,14 @@ fun ChatScreen(navController: NavController) {
                     }
                 }
         } else {
-            // ✅ RESTAURANTE: Mostrar solo chats existentes
-            println("📋 Cargando chats del restaurante...")
+            // RESTAURANTE: Mostrar solo chats existentes
+            println("Cargando chats del restaurante...")
 
             firestore.collection("chat")
                 .whereArrayContains("participantes", uid)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        println("❌ Error cargando chats: ${error.message}")
+                        println("Error cargando chats: ${error.message}")
                         displayList = emptyList()
                         isLoading = false
                         return@addSnapshotListener
@@ -204,7 +204,7 @@ fun ChatScreen(navController: NavController) {
                             val clienteNombre = data["clienteNombre"] as? String ?: "Cliente"
                             val ultimoMensaje = data["ultimoMensaje"] as? String ?: ""
 
-                            println("💬 Chat encontrado: $clienteNombre - $ultimoMensaje")
+                            println("Chat encontrado: $clienteNombre - $ultimoMensaje")
 
                             ChatItemDisplay(
                                 id = doc.id,
@@ -214,7 +214,7 @@ fun ChatScreen(navController: NavController) {
                             )
                         }
 
-                        println("✅ Total chats cargados: ${displayList.size}")
+                        println("Total chats cargados: ${displayList.size}")
                         isLoading = false
                     }
                 }
@@ -431,16 +431,6 @@ fun ChatScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.menu),
-                    contentDescription = "Menú",
-                    modifier = Modifier.size(32.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.bell),
-                    contentDescription = "Notificaciones",
-                    modifier = Modifier.size(32.dp)
-                )
             }
 
             // ===== BOTTOMBAR DINÁMICO SEGÚN EL ROL =====
