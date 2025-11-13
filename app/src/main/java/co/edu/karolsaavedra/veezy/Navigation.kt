@@ -226,7 +226,9 @@ fun NavigationApp() {
                 val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
                 ChatDetailScreen(navController = navController, chatId = chatId)
             }
-
+             composable("TurnoPendiente") {
+                TurnoPendienteScreen(navController = navController)
+                }
 
         }
     }

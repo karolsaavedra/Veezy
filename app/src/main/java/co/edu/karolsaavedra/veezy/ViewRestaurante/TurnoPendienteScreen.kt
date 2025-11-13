@@ -199,13 +199,12 @@ fun TurnoPendienteScreen(navController: NavController) { // Se agrega navControl
                         InfoRow(label = "Correo:", value = email)
                         InfoRow(label = "Tipo de pedido:", value = "Para llevar")
                         InfoRow(label = "Turno:", value = "11")
-                        InfoRow(label = "Hora:", value = "6 PM")
 
 
                         Spacer(modifier = Modifier.height(20.dp))
 
                         Button(
-                            onClick = { /* Acción confirmar */ },
+                            onClick = { navController.navigate("profileRestaurante")},
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFFFFC64F)
                             ),
@@ -273,7 +272,7 @@ fun InfoRow(label: String, value: String) {
     }
 }
 
-// ✅ Preview con NavController (idéntico formato al de los otros archivos)
+//Preview con NavController (idéntico formato al de los otros archivos)
 @Preview(showBackground = true)
 @Composable
 fun PreviewTurnoPendienteScreen() {
