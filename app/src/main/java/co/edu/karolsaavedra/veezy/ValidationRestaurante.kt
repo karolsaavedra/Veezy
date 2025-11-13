@@ -41,7 +41,7 @@ fun validateNameRestaurante (nameRestaurante :String): Pair <Boolean, String>{
 }
 
 fun validateDireccion(direccion: String): Pair<Boolean, String> {
-    val regex = Regex("^[A-Za-zÁÉÍÓÚáéíóúÑñra0-9#°\\-\\.\\s]+$")
+    val regex = Regex("^(?=.*(?:Cl\\.|Cra\\.))(?=.*#)(?=.*-)(?=.*Santander)[\\p{L}0-9\\s\\.,#\\-]+$")
 
     return when {
         direccion.isEmpty() -> Pair(false, "La dirección es requerida.")

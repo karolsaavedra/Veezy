@@ -122,16 +122,37 @@ fun RegisterRestaurante(
             // -------- Dirección --------
             Text(
                 text = "Dirección",
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 48.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp),
                 textAlign = TextAlign.Start,
-                style = TextStyle(fontSize = 25.sp, fontFamily = FontFamily.SansSerif, color = Color(0xFF863939))
+                style = TextStyle(
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily.SansSerif,
+                    color = Color(0xFF863939)
+                )
             )
+
             Spacer(modifier = Modifier.height(1.dp))
+
             OutlinedTextField(
                 value = inputDireccion,
-                onValueChange = { inputDireccion = it },
+                onValueChange = {
+                    inputDireccion = it
+                    direccionError = if (it.isBlank()) {
+                        "La dirección no puede estar vacía"
+                    } else {
+                        ""
+                    }
+                },
                 label = { Text("Dirección", color = Color(0xFFCB6363)) },
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = "Dirección", tint = Color(0xFFCB6363)) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = "Dirección",
+                        tint = Color(0xFFCB6363)
+                    )
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     capitalization = KeyboardCapitalization.Words,
@@ -147,10 +168,26 @@ fun RegisterRestaurante(
                     focusedContainerColor = Color(0xFFFFFFFF),
                     unfocusedBorderColor = Color.Gray,
                 ),
-                supportingText = { if (direccionError.isNotEmpty()) Text(direccionError, color = Color.Red) }
+                supportingText = {
+                    when {
+                        direccionError.isNotEmpty() -> Text(
+                            direccionError,
+                            color = Color.Red,
+                            fontSize = 12.sp
+                        )
+                        else -> Text(
+                            "Ejemplo: Cl. 32 #26-26, Bucaramanga, Santander",
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp)
             )
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // -------- Nombre restaurante --------
             Text(
