@@ -188,7 +188,7 @@ fun NavigationApp() {
             composable("menuRestauranteScreen") { MenuRestauranteScreen(navController = navController) }
             composable("scanRestaurante") { QRScreen(navController = navController) }
             composable("profileRestaurante") { ClientsWaitingScreen(navController = navController) }
-            composable("chatRestaurante") { ChatRestauranteScreen(navController = navController) }
+            composable("chatRestaurante") { ChatScreen(navController = navController) }
             composable("editarMenu") { EditarMenuScreen(navController = navController) }
             composable("agregarProducto") { AgregarProductoScreen(navController = navController) }
 
@@ -216,6 +216,16 @@ fun NavigationApp() {
 
 
             composable("TurnoGenerado") { TurnoScreen(navController = navController) }
+
+            // ============== Pantallas Chat ==============
+            composable("chat_list") {
+                ChatListScreen(navController)
+            }
+
+            composable("chat_detail/{chatId}") { backStackEntry ->
+                val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+                ChatDetailScreen(navController = navController, chatId = chatId)
+            }
 
 
         }

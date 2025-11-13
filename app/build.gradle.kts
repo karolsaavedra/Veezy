@@ -93,6 +93,8 @@ dependencies {
     //Storage
     implementation(libs.firebase.storage)
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
 
 
 
