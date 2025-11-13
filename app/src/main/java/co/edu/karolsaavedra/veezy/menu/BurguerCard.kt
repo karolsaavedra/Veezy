@@ -80,7 +80,7 @@ fun ProductCardCliente(producto: Producto, onClick: () -> Unit) {
 
             // Horario
             Text(
-                text = "Horario de atención: ${producto.horario}",
+                text = ": ${producto.horario}",
                 color = Color(0xFF641717),
                 fontSize = 12.sp,
                 modifier = Modifier

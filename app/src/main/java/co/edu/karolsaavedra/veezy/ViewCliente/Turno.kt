@@ -110,8 +110,15 @@ fun TurnoScreen(navController: NavController? = null, turnoId: String? = null) {
                             }
                         }
 
-                        // Generar QR value
-                        qrValue = "${turnoDocId}-${numeroTurno}"
+                        // IMPORTANTE: El QR debe contener SOLO el turnoDocId
+                        qrValue = turnoDocId
+
+                        println("=== TURNO GENERADO ===")
+                        println("Turno Doc ID: $turnoDocId")
+                        println("Número de turno: $numeroTurno")
+                        println("QR Value: $qrValue")
+                        println("Restaurante: $nombreRestaurante")
+                        println("=====================")
                     }
                     cargando = false
                 }
