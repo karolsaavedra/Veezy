@@ -1,11 +1,12 @@
 package co.edu.karolsaavedra.veezy.ViewCliente
 
-import androidx.annotation.Size
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -20,61 +21,105 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import co.edu.karolsaavedra.veezy.R
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.simonsickle.compose.barcodes.Barcode
 import com.simonsickle.compose.barcodes.BarcodeType
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Composable
-fun TurnoScreen(navController: NavController? = null) {
-    // NUEVO: Instancias de Firebase
+fun TurnoScreen(navController: NavController? = null, turnoId: String? = null) {
     val db = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val userId = auth.currentUser?.uid
 
-    // NUEVO: Estados para mostrar los datos en pantalla
-    var turno by remember { mutableStateOf<Int?>(null) }
+    var numeroTurno by remember { mutableStateOf<Long?>(null) }
     var nombreCliente by remember { mutableStateOf("") }
-    var codigoCliente by remember { mutableStateOf("") }
+    var codigoTurno by remember { mutableStateOf("") }
     var nombreRestaurante by remember { mutableStateOf("") }
-    var ultimoTurno by remember { mutableStateOf<Map<String, Any>?>(null) } // Estado para el último turno
+    var fechaTurno by remember { mutableStateOf("") }
+    var estadoTurno by remember { mutableStateOf("") }
+    var tiempoTranscurrido by remember { mutableStateOf("") }
+    var qrValue by remember { mutableStateOf("") }
+    var cargando by remember { mutableStateOf(true) }
+    var turnoDocId by remember { mutableStateOf("") }
 
-    // NUEVO: Cargar información del cliente y su turno
+    // Cargar datos del usuario
     LaunchedEffect(userId) {
         if (userId != null) {
-            db.collection("users").document(userId).get()
+            db.collection("clientes").document(userId).get()
                 .addOnSuccessListener { doc ->
                     if (doc.exists()) {
-                        nombreCliente =
-                            (doc.getString("nombre") ?: "") + " " + (doc.getString("apellido") ?: "")
-                        codigoCliente = userId.take(6).uppercase()
-                        turno = (doc.getLong("turno") ?: 0L).toInt()
-
-                        // Obtener restaurante del último turno del cliente
-                        db.collection("turnos")
-                            .whereEqualTo("clienteId", userId)
-                            .get()
-                            .addOnSuccessListener { snapshot ->
-                                val docMax = snapshot.documents.maxByOrNull {
-                                    it.getTimestamp("timestamp")?.toDate()?.time ?: 0L
-                                }
-                                ultimoTurno = docMax?.data
-                                nombreRestaurante = docMax?.getString("restauranteId") ?: "No asignado"
-                                turno = docMax?.getLong("turno")?.toInt() ?: 0
-                            }
+                        val nombre = doc.getString("nombre") ?: ""
+                        val apellido = doc.getString("apellido") ?: ""
+                        nombreCliente = "$nombre $apellido"
                     }
                 }
         }
     }
 
-    // Valor dinámico para generar QR
-    val qrValue = ultimoTurno?.get("qrValue") as? String ?: "$userId-$turno"
+    // Cargar último turno del usuario
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            db.collection("turnos")
+                .whereEqualTo("clienteId", userId)
+                .whereEqualTo("estado", "pendiente")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val ultimoTurno = snapshot.documents.maxByOrNull {
+                        it.getTimestamp("timestamp")?.toDate()?.time ?: 0L
+                    }
+
+                    if (ultimoTurno != null) {
+                        turnoDocId = ultimoTurno.id
+                        numeroTurno = ultimoTurno.getLong("numero")
+                        nombreRestaurante = ultimoTurno.getString("restauranteNombre") ?: "Desconocido"
+                        estadoTurno = when (ultimoTurno.getString("estado")) {
+                            "pendiente" -> "En fila"
+                            "atendido" -> "Finalizado"
+                            "cancelado" -> "Cancelado"
+                            else -> "En fila"
+                        }
+
+                        // Generar código único (primeras 6 letras del ID del documento)
+                        codigoTurno = ultimoTurno.id.take(6).uppercase()
+
+                        // Formatear fecha
+                        val timestamp = ultimoTurno.getTimestamp("timestamp")
+                        if (timestamp != null) {
+                            val date = timestamp.toDate()
+                            val dateFormat = SimpleDateFormat("dd/MMM", Locale.getDefault())
+                            fechaTurno = dateFormat.format(date).uppercase()
+
+                            // Calcular tiempo transcurrido
+                            val ahora = Date()
+                            val diferencia = ahora.time - date.time
+                            val minutos = TimeUnit.MILLISECONDS.toMinutes(diferencia)
+                            val horas = TimeUnit.MILLISECONDS.toHours(diferencia)
+
+                            tiempoTranscurrido = when {
+                                minutos < 60 -> "$minutos min"
+                                horas < 24 -> "$horas hrs"
+                                else -> "${TimeUnit.MILLISECONDS.toDays(diferencia)} días"
+                            }
+                        }
+
+                        // Generar QR value
+                        qrValue = "${turnoDocId}-${numeroTurno}"
+                    }
+                    cargando = false
+                }
+                .addOnFailureListener {
+                    cargando = false
+                }
+        }
+    }
 
     Scaffold(
         containerColor = Color(0xFF641717)
@@ -85,19 +130,21 @@ fun TurnoScreen(navController: NavController? = null) {
                 .padding(paddingValues)
                 .background(color = Color(0xFF641717))
         ) {
-            // ===== BOTONES SUPERIORES =====
-            Row(
+            // Botón cerrar superior
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 40.dp)
-                    .align(Alignment.TopCenter),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .align(Alignment.TopStart)
             ) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(color = Color(0xFFD78D00), shape = CircleShape),
+                        .background(color = Color(0xFFD78D00), shape = CircleShape)
+                        .clickable {
+                            navController?.navigate("walletCliente") {
+                                popUpTo("walletCliente") { inclusive = true }
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -107,31 +154,9 @@ fun TurnoScreen(navController: NavController? = null) {
                         contentScale = ContentScale.Fit
                     )
                 }
-
-                Row(
-                    modifier = Modifier
-                        .width(85.dp)
-                        .height(40.dp)
-                        .background(color = Color(0xC4D9D9D9), shape = RoundedCornerShape(20.dp)),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.danger___iconly_pro),
-                        contentDescription = "Peligro",
-                        modifier = Modifier.size(22.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.more_horizontal),
-                        contentDescription = "Más opciones",
-                        modifier = Modifier.size(22.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
             }
 
-            // ===== RECUADRO BLANCO PRINCIPAL =====
+            // Recuadro blanco principal
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -146,134 +171,164 @@ fun TurnoScreen(navController: NavController? = null) {
                     .background(color = Color(0xFFFFF9F9), shape = RoundedCornerShape(24.dp))
                     .padding(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                if (cargando) {
+                    // Pantalla de carga
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        repeat(10) {
-                            Image(
-                                painter = painterResource(id = R.drawable.star_1),
-                                contentDescription = "Estrella",
-                                modifier = Modifier.size(24.dp),
-                                contentScale = ContentScale.Fit
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF641717))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Cargando turno...",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF641717)
+                                )
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Turno",
-                        style = TextStyle(
-                            fontSize = 36.sp,
-                            fontFamily = FontFamily(Font(R.font.afacad)),
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF641717),
-                            textAlign = TextAlign.Center
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = turno?.toString() ?: "--",
-                        style = TextStyle(
-                            fontSize = 90.sp,
-                            fontFamily = FontFamily(Font(R.font.afacad)),
-                            fontWeight = FontWeight.Normal,
-                            color = Color.Black,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        InfoColumn("Día", "15/OCT")
-                        InfoColumn("Estado", "En fila")
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        InfoColumn("Código", "FRC175")
-                        InfoColumn("Tiempo", "35 min")
-                    }
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    InfoColumn("Usuario", nombreCliente.ifEmpty { "--" })
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Restaurante",
-                        style = TextStyle(
-                            fontSize = 22.sp,
-                            fontFamily = FontFamily(Font(R.font.afacad)),
-                            fontWeight = FontWeight.Normal,
-                            color = Color.Black,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-
-                    Text(
-                        text = nombreRestaurante.ifEmpty { "Cargando..." },
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(R.font.afacad)),
-                            fontWeight = FontWeight.Normal,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // ===== CÓDIGO QR =====
-                    Box(
+                } else {
+                    Column(
                         modifier = Modifier
-                            .size(200.dp)
-                            .background(color = Color(0x96EBA3A3), shape = RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center
+                            .fillMaxSize()
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Barcode(
-                            value = qrValue,
-                            type = BarcodeType.QR_CODE,
-                            modifier = Modifier.size(200.dp)
-                        )
-                    }
+                        // Fila de estrellas superior
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            repeat(10) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.star_1),
+                                    contentDescription = "Estrella",
+                                    modifier = Modifier.size(24.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        repeat(10) {
-                            Image(
-                                painter = painterResource(id = R.drawable.star_1),
-                                contentDescription = "Estrella",
-                                modifier = Modifier.size(24.dp),
-                                contentScale = ContentScale.Fit
+                        Text(
+                            text = "Turno",
+                            style = TextStyle(
+                                fontSize = 36.sp,
+                                fontFamily = FontFamily(Font(R.font.afacad)),
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF641717),
+                                textAlign = TextAlign.Center
                             )
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = numeroTurno?.toString() ?: "--",
+                            style = TextStyle(
+                                fontSize = 50.sp,
+                                fontFamily = FontFamily(Font(R.font.afacad)),
+                                fontWeight = FontWeight.Normal,
+                                color = Color.Black,
+                                textAlign = TextAlign.Center
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Primera fila de información
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            InfoColumn("Día", fechaTurno.ifEmpty { "--" })
+                            InfoColumn("Estado", estadoTurno.ifEmpty { "--" })
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Segunda fila de información
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            InfoColumn("Código", codigoTurno.ifEmpty { "--" })
+                            InfoColumn("Tiempo", tiempoTranscurrido.ifEmpty { "--" })
+                        }
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        // Usuario
+                        InfoColumn("Usuario", nombreCliente.ifEmpty { "Cargando..." })
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Restaurante
+                        Text(
+                            text = "Restaurante",
+                            style = TextStyle(
+                                fontSize = 22.sp,
+                                fontFamily = FontFamily(Font(R.font.afacad)),
+                                fontWeight = FontWeight.Normal,
+                                color = Color(0xFFB2B2B2),
+                                textAlign = TextAlign.Center
+                            )
+                        )
+
+                        Text(
+                            text = nombreRestaurante.ifEmpty { "Cargando..." },
+                            style = TextStyle(
+                                fontSize = 22.sp,
+                                fontFamily = FontFamily(Font(R.font.afacad)),
+                                fontWeight = FontWeight.Normal,
+                                color = Color.Black,
+                                textAlign = TextAlign.Center
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Código QR
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .background(color = Color(0x96EBA3A3), shape = RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (qrValue.isNotEmpty()) {
+                                Barcode(
+                                    value = qrValue,
+                                    type = BarcodeType.QR_CODE,
+                                    modifier = Modifier.size(300.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Fila de estrellas inferior
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            repeat(10) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.star_1),
+                                    contentDescription = "Estrella",
+                                    modifier = Modifier.size(24.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
                     }
                 }
@@ -306,10 +361,4 @@ fun InfoColumn(title: String, value: String) {
             )
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewTurnoScreen() {
-    TurnoScreen()
 }
