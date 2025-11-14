@@ -234,17 +234,7 @@ fun PaginaReservas(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Button(
-                        onClick = { navController?.navigate("InfoProducto") },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFEFEFEF),
-                            contentColor = Color(0xFF641717)
-                        ),
-                        shape = RoundedCornerShape(50),
-                        modifier = Modifier.width(150.dp)
-                    ) {
-                        Text("Cancelar", fontWeight = FontWeight.Bold)
-                    }
+
                     Button(
                         onClick = {
                             generandoTurno = true

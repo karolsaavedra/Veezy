@@ -33,6 +33,8 @@ import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun MenuRestauranteScreen(
@@ -47,38 +49,42 @@ fun MenuRestauranteScreen(
     var productos by remember { mutableStateOf<List<Producto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Nueva carga con corutinas
     LaunchedEffect(true) {
         try {
             if (user != null) {
+                // Obtener nombre del restaurante
                 val restauranteDoc = db.collection("restaurantes").document(user.uid).get().await()
-
                 nombreRestaurante = restauranteDoc.getString("nombreRestaurante") ?: "Mi Restaurante"
 
-                // Cargar productos del restaurante actual
-                val productosSnap = db.collection("restaurantes")
+                // Escuchar cambios en tiempo real de los productos
+                db.collection("restaurantes")
                     .document(user.uid)
                     .collection("productos")
-                    .get()
-                    .await()
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            Log.e("MenuRestauranteScreen", "Error al escuchar productos: ${error.message}")
+                            return@addSnapshotListener
+                        }
 
-                val listaProductos = productosSnap.documents.mapNotNull { doc ->
-                    val producto = doc.toObject(Producto::class.java)
-                    producto?.copy(
-                        nombreRestaurante = nombreRestaurante // 👈 Aquí añadimos el nombre
-                    )
-                }
-
-                productos = listaProductos
-                Log.d("MenuRestauranteScreen", "Productos cargados: ${productos.size}")
+                        if (snapshot != null) {
+                            val listaProductos = snapshot.documents.mapNotNull { doc ->
+                                val producto = doc.toObject(Producto::class.java)
+                                producto?.copy(
+                                    id = doc.id,
+                                    nombreRestaurante = nombreRestaurante
+                                )
+                            }
+                            productos = listaProductos
+                            Log.d("MenuRestauranteScreen", "Productos actualizados: ${productos.size}")
+                        }
+                        isLoading = false
+                    }
             }
         } catch (e: Exception) {
             Log.e("MenuRestauranteScreen", "Error al cargar datos: ${e.message}")
-        } finally {
             isLoading = false
         }
     }
-
 
     Scaffold(
         containerColor = Color(0xFF641717),
@@ -97,7 +103,6 @@ fun MenuRestauranteScreen(
                 .fillMaxSize()
                 .background(Color(0xFF641717))
         ) {
-            // --- Aros decorativos (fondo) ---
             Image(
                 painter = painterResource(id = R.drawable.group_3),
                 contentDescription = "Círculo superior izquierdo",
@@ -118,13 +123,11 @@ fun MenuRestauranteScreen(
                 contentScale = ContentScale.None
             )
 
-            // --- Contenido principal ---
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 80.dp)
             ) {
-                // Header con botón de cerrar sesión
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -156,7 +159,6 @@ fun MenuRestauranteScreen(
                     }
                 }
 
-                // Título
                 Text(
                     text = nombreRestaurante,
                     style = TextStyle(
@@ -176,7 +178,6 @@ fun MenuRestauranteScreen(
                         .padding(start = 28.dp, top = 4.dp, bottom = 20.dp)
                 )
 
-                // Grid con productos
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -185,12 +186,54 @@ fun MenuRestauranteScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(productos) { producto ->
-                        ProductoCard(producto = producto)
+                        ProductoCard(
+                            producto = producto,
+                            onClick = {
+                                // Navegar a editar producto con el ID
+                                navController.navigate("editarProducto/${producto.id}")
+                            },
+                            onDelete = {
+                                user?.let { usuario ->
+
+                                    // 1. Primero eliminar la imagen del Storage (si existe)
+                                    try {
+                                        if (!producto.imagenUrl.isNullOrEmpty()) {
+                                            val storageRef = com.google.firebase.storage.FirebaseStorage
+                                                .getInstance()
+                                                .getReferenceFromUrl(producto.imagenUrl)
+
+                                            storageRef.delete()
+                                                .addOnSuccessListener {
+                                                    Log.d("MenuRestauranteScreen", "Imagen eliminada de Storage")
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Log.e("MenuRestauranteScreen", "Error al eliminar imagen: ${e.message}")
+                                                }
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("MenuRestauranteScreen", "URL de imagen inválida: ${e.message}")
+                                    }
+
+                                    // 2. Ahora eliminar el documento de Firestore
+                                    db.collection("restaurantes")
+                                        .document(usuario.uid)
+                                        .collection("productos")
+                                        .document(producto.id)
+                                        .delete()
+                                        .addOnSuccessListener {
+                                            Log.d("MenuRestauranteScreen", "Producto eliminado: ${producto.id}")
+                                        }
+                                        .addOnFailureListener { error ->
+                                            Log.e("MenuRestauranteScreen", "Error al eliminar: ${error.message}")
+                                        }
+                                }
+                            }
+                        )
                     }
 
                     item {
                         AddBurgerButton(onClick = {
-                            navController.navigate("editarMenu")
+                            navController.navigate("agregarProducto")
                         })
                     }
                 }

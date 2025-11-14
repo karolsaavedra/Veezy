@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,21 +54,23 @@ fun AgregarProductoScreen(navController: NavController) {
     var precio by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
+    var horario by remember { mutableStateOf("") }
 
     var precioError by remember { mutableStateOf("") }
     var nombreProductoError by remember { mutableStateOf("") }
     var direccionError by remember { mutableStateOf("") }
     var descripcionError by remember { mutableStateOf("") }
+    var horarioError by remember { mutableStateOf("") }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uid) {
         db.collection("restaurantes").document(uid)
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    nombreProducto = document.getString("productos") ?: ""
-                    precio = document.getString("precio") ?: ""
-                    //descripcion = document.getString("descripcion") ?: ""
                     direccion = document.getString("direccion") ?: ""
+                    horario = document.getString("horario") ?: ""
                 }
             }
             .addOnFailureListener {
@@ -75,7 +79,7 @@ fun AgregarProductoScreen(navController: NavController) {
     }
 
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
-    var imagenSubidaUri by remember { mutableStateOf<Uri?>(null) } // URI final desde Storage
+    var imagenSubidaUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
     // Launcher para seleccionar imagen de la galería
@@ -114,6 +118,55 @@ fun AgregarProductoScreen(navController: NavController) {
         }
     }
 
+    fun limpiarFormulario() {
+        nombreProducto = ""
+        precio = ""
+        descripcion = ""
+        imagenUri = null
+        imagenSubidaUri = null
+        nombreProductoError = ""
+        precioError = ""
+        descripcionError = ""
+        direccionError = ""
+        horarioError = ""
+        mensaje = "Formulario limpiado"
+        Toast.makeText(context, "Información eliminada", Toast.LENGTH_SHORT).show()
+    }
+
+    // Diálogo de confirmación para limpiar
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(
+                    "Eliminar información",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text("¿Estás seguro de que deseas eliminar toda la información del formulario?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        limpiarFormulario()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Eliminar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar", color = Color(0xFF641717))
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
+
     Scaffold(
         containerColor = Color(0xFF641717)
     ) { paddingValues ->
@@ -134,21 +187,42 @@ fun AgregarProductoScreen(navController: NavController) {
             ) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                IconButton(
-                    onClick = { navController.popBackStack() },
+                // ===== HEADER CON BOTONES =====
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.Start)
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow),
-                        contentDescription = "Volver",
-                        tint = Color.White,
-                        modifier = Modifier.size(50.dp)
-                    )
+                    // Botón volver
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow),
+                            contentDescription = "Volver",
+                            tint = Color.White,
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+
+                    // Botón eliminar
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar información",
+                            tint = Color(0xFFFF6B6B),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(60.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 // ===== CONTENEDOR DE IMAGEN =====
                 Box(
@@ -158,8 +232,6 @@ fun AgregarProductoScreen(navController: NavController) {
                         .background(Color(0xFF8C3A3A), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-
-                    // Mostrar imagen subida si ya se subió, si no mostrar la seleccionada
                     val mostrarImagen = imagenSubidaUri ?: imagenUri
 
                     if (mostrarImagen != null) {
@@ -170,6 +242,7 @@ fun AgregarProductoScreen(navController: NavController) {
                                 .fillMaxSize()
                                 .padding(8.dp)
                                 .clickable { abrirGaleria() },
+                            contentScale = ContentScale.Crop
                         )
                     } else {
                         Box(
@@ -191,7 +264,7 @@ fun AgregarProductoScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // ===== CAMPOS DE TEXTO =====
+                // ===== CAMPO: NOMBRE DEL PRODUCTO =====
                 Text(
                     text = "Nombre del producto:",
                     modifier = Modifier
@@ -237,6 +310,7 @@ fun AgregarProductoScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // ===== CAMPO: PRECIO =====
                 Text(
                     text = "Precio:",
                     modifier = Modifier
@@ -258,9 +332,9 @@ fun AgregarProductoScreen(navController: NavController) {
                     onValueChange = { precio = it },
                     placeholder = { Text("Precio", color = Color(0xFFB2B2B2)) },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = KeyboardType.Number,
                         capitalization = KeyboardCapitalization.None,
-                        autoCorrect = true
+                        autoCorrect = false
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -282,6 +356,7 @@ fun AgregarProductoScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // ===== CAMPO: DESCRIPCIÓN =====
                 Text(
                     text = "Descripción producto:",
                     modifier = Modifier
@@ -304,7 +379,7 @@ fun AgregarProductoScreen(navController: NavController) {
                     placeholder = { Text("Descripción producto", color = Color(0xFFB2B2B2)) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.None,
+                        capitalization = KeyboardCapitalization.Sentences,
                         autoCorrect = true
                     ),
                     modifier = Modifier
@@ -322,11 +397,14 @@ fun AgregarProductoScreen(navController: NavController) {
                     ),
                     supportingText = {
                         if (descripcionError.isNotEmpty()) Text(descripcionError, color = Color.Red)
-                    }
+                    },
+                    minLines = 2,
+                    maxLines = 4
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // ===== CAMPO: DIRECCIÓN =====
                 Text(
                     text = "Dirección:",
                     modifier = Modifier
@@ -349,7 +427,7 @@ fun AgregarProductoScreen(navController: NavController) {
                     placeholder = { Text("Dirección", color = Color(0xFFB2B2B2)) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.None,
+                        capitalization = KeyboardCapitalization.Words,
                         autoCorrect = true
                     ),
                     modifier = Modifier
@@ -370,6 +448,52 @@ fun AgregarProductoScreen(navController: NavController) {
                     }
                 )
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ===== CAMPO: HORARIO =====
+                Text(
+                    text = "Horario:",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 26.dp),
+                    textAlign = TextAlign.Start,
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        color = Color(0xFFFFCC00),
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                OutlinedTextField(
+                    value = horario,
+                    onValueChange = { horario = it },
+                    placeholder = { Text("Ej: Lun-Vie 9AM-6PM", color = Color(0xFFB2B2B2)) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrect = true
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color(0xFF641717),
+                        unfocusedTextColor = Color(0xFF641717),
+                        focusedBorderColor = Color(0xFF641717),
+                        unfocusedBorderColor = Color.Gray,
+                        cursorColor = Color(0xFF641717),
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White
+                    ),
+                    supportingText = {
+                        if (horarioError.isNotEmpty()) Text(horarioError, color = Color.Red)
+                    }
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // ===== BOTÓN GUARDAR =====
@@ -382,7 +506,8 @@ fun AgregarProductoScreen(navController: NavController) {
                         }
                         val uid = currentUser.uid
 
-                        if (nombreProducto.isBlank() || precio.isBlank() || descripcion.isBlank() || direccion.isBlank()) {
+                        if (nombreProducto.isBlank() || precio.isBlank() || descripcion.isBlank() ||
+                            direccion.isBlank() || horario.isBlank()) {
                             mensaje = "Por favor completa todos los campos."
                             return@Button
                         }
@@ -406,6 +531,7 @@ fun AgregarProductoScreen(navController: NavController) {
                                         "precio" to precio,
                                         "descripcion" to descripcion,
                                         "direccion" to direccion,
+                                        "horario" to horario,
                                         "imagenUrl" to uri.toString()
                                     )
 
@@ -417,8 +543,15 @@ fun AgregarProductoScreen(navController: NavController) {
                                         .add(productoData)
                                         .addOnSuccessListener {
                                             mensaje = "Producto guardado correctamente."
-                                            imagenSubidaUri = uri // Mostrar imagen desde Storage
-                                            navController.navigate("menuRestaurante")
+                                            imagenSubidaUri = uri
+                                            Toast.makeText(
+                                                context,
+                                                "Producto agregado exitosamente",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            navController.navigate("menuRestauranteScreen") {
+                                                popUpTo("menuRestauranteScreen") { inclusive = true }
+                                            }
                                         }
                                         .addOnFailureListener { e ->
                                             mensaje = "Error al guardar en Firestore: ${e.message}"
@@ -447,12 +580,19 @@ fun AgregarProductoScreen(navController: NavController) {
                 }
 
                 if (mensaje.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = mensaje,
-                        color = if (mensaje.contains("correctamente")) Color.Green else Color.Red,
-                        modifier = Modifier.padding(top = 8.dp)
+                        color = if (mensaje.contains("correctamente")) Color(0xFF4CAF50) else Color(0xFFFF6B6B),
+                        modifier = Modifier.padding(top = 8.dp),
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     )
                 }
+
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
