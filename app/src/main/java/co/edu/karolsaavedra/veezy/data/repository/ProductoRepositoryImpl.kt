@@ -20,7 +20,10 @@ class ProductoRepositoryImpl(
             .document(restauranteUid)
             .collection("productos")
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    trySend(emptyList()) // Corrección aplicada aquí
+                    return@addSnapshotListener
+                }
                 val lista = snapshot?.documents?.mapNotNull { doc ->
                     val data = doc.data ?: return@mapNotNull null
                     Producto(

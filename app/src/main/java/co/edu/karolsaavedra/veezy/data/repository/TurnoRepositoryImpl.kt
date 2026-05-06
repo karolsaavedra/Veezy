@@ -43,7 +43,10 @@ class TurnoRepositoryImpl(
             .whereEqualTo("clienteId", clienteId)
             .whereEqualTo("estado", "pendiente")
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    trySend(emptyList()) // Corrección aplicada
+                    return@addSnapshotListener
+                }
                 val lista = snapshot?.documents?.mapNotNull { doc ->
                     doc.data?.let { mapToTurno(doc.id, it) }
                 } ?: emptyList()
@@ -57,7 +60,10 @@ class TurnoRepositoryImpl(
             .whereEqualTo("restauranteNombre", nombreRestaurante)
             .whereEqualTo("estado", "pendiente")
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    trySend(emptyList()) // Corrección aplicada
+                    return@addSnapshotListener
+                }
                 val lista = snapshot?.documents?.mapNotNull { doc ->
                     doc.data?.let { mapToTurno(doc.id, it) }
                 } ?: emptyList()

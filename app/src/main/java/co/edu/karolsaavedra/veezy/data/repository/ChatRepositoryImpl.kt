@@ -55,7 +55,10 @@ class ChatRepositoryImpl(
             .collection("mensajes")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    trySend(emptyList()) // Corrección aplicada
+                    return@addSnapshotListener
+                }
                 val lista = snapshot?.documents?.mapNotNull { doc ->
                     val texto = doc.getString("texto") ?: return@mapNotNull null
                     val emisorId = doc.getString("emisorId") ?: return@mapNotNull null
@@ -94,7 +97,10 @@ class ChatRepositoryImpl(
         val listener = firestore.collection("chat")
             .whereArrayContains("participantes", restauranteId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    trySend(emptyList()) // Corrección aplicada
+                    return@addSnapshotListener
+                }
                 val lista = snapshot?.documents?.mapNotNull { doc ->
                     val data = doc.data ?: return@mapNotNull null
                     Chat(
