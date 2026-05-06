@@ -1,6 +1,5 @@
 package co.edu.karolsaavedra.veezy.menu
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,55 +22,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel // <-- Importante para usar viewModel()
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBar
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import co.edu.karolsaavedra.veezy.di.AppContainer
+import co.edu.karolsaavedra.veezy.di.ViewModelFactory
+import co.edu.karolsaavedra.veezy.presentation.menu.MenuViewModel
+
+
+// TODO: Asegúrate de importar aquí tus clases AppContainer, ViewModelFactory y MenuViewModel
+// import co.edu.karolsaavedra.veezy.di.AppContainer
+// import co.edu.karolsaavedra.veezy.di.ViewModelFactory
 
 @Composable
 fun MenuScreen(navController: NavController) {
-    val db = FirebaseFirestore.getInstance()
-    val productos = remember { mutableStateListOf<Producto>() }
-    var isLoading by remember { mutableStateOf(true) }
+    // 1. Inyectamos el ViewModel usando tu Factory y el AppContainer
+    val viewModel: MenuViewModel = viewModel(
+        factory = ViewModelFactory { AppContainer.provideMenuViewModel() }
+    )
 
-    //Carga todos los productos de TODAS las subcolecciones "productos" bajo "restaurantes"
-    LaunchedEffect(true) {
-        try {
-            productos.clear()
-            val restaurantesSnap = db.collection("restaurantes").get().await()
+    // 2. Observamos el estado de la UI de forma reactiva
+    val uiState by viewModel.uiState.collectAsState()
 
-            for (restauranteDoc in restaurantesSnap.documents) {
-                val nombreRestaurante = restauranteDoc.getString("nombreRestaurante") ?: ""
-                val horario = restauranteDoc.getString("horario") ?: ""
-                val imagenRestaurante = restauranteDoc.getString("imagenUrl") ?: ""
-                val direccion = restauranteDoc.getString("direccion") ?: ""
-
-                // Recorremos los productos dentro del restaurante
-                val productosSnap = restauranteDoc.reference.collection("productos").get().await()
-                for (productoDoc in productosSnap.documents) {
-                    val producto = productoDoc.toObject(Producto::class.java)
-                    if (producto != null) {
-                        // Se agrega el id del documento del producto
-                        val productoConDatos = producto.copy(
-                            id = productoDoc.id,
-                            nombreRestaurante = nombreRestaurante,
-                            horario = horario,
-                            imagenUrl = if (producto.imagenUrl.isNotEmpty()) producto.imagenUrl else imagenRestaurante,
-                            direccion = direccion
-                        )
-                        productos.add(productoConDatos)
-                    }
-                }
-            }
-
-            Log.d("MenuScreen", "Productos cargados: ${productos.size}")
-        } catch (e: Exception) {
-            Log.e("MenuScreen", "Error al cargar productos: ${e.message}")
-        } finally {
-            isLoading = false
-        }
+    // 3. Cargamos los productos solo una vez al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.cargarTodosLosProductos()
     }
 
     Scaffold(
@@ -139,14 +118,15 @@ fun MenuScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(100.dp))
 
-                if (isLoading) {
+                // 4. Usamos el uiState para decidir qué mostrar
+                if (uiState.isLoading) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = Color.White)
                     }
-                } else if (productos.isEmpty()) {
+                } else if (uiState.productos.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -165,9 +145,8 @@ fun MenuScreen(navController: NavController) {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(productos) { producto ->
+                        items(uiState.productos) { producto ->
                             ProductCardCliente(producto = producto, onClick = {
-                                // Usa el id agregado para navegar correctamente
                                 navController.navigate("Burgerinfo/${producto.nombreRestaurante}/${producto.id}")
                             })
                         }

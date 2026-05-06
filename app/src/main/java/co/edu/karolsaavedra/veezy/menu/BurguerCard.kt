@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import co.edu.karolsaavedra.veezy.domain.model.Producto
+
 
 // ========== CARD PARA RESTAURANTE (con botón eliminar) ==========
 @Composable

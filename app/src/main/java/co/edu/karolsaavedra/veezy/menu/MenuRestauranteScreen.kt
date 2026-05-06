@@ -1,6 +1,5 @@
 package co.edu.karolsaavedra.veezy.menu
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,63 +25,42 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
 import co.edu.karolsaavedra.veezy.ViewGeneral.BottomBarRestaurante
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import co.edu.karolsaavedra.veezy.di.AppContainer
+import co.edu.karolsaavedra.veezy.di.ViewModelFactory
+import co.edu.karolsaavedra.veezy.presentation.menu.MenuViewModel
+import co.edu.karolsaavedra.veezy.presentation.restaurante.RestauranteViewModel // <-- Nuevo import
 
 @Composable
 fun MenuRestauranteScreen(
     navController: NavHostController,
     onClickLogout: () -> Unit = {}
 ) {
+    // 1. Inyectamos ambos ViewModels
+    val menuViewModel: MenuViewModel = viewModel(
+        factory = ViewModelFactory { AppContainer.provideMenuViewModel() }
+    )
+    val restauranteViewModel: RestauranteViewModel = viewModel(
+        factory = ViewModelFactory { AppContainer.provideRestauranteViewModel() }
+    )
+
+    // 2. Observamos ambos estados
+    val uiState by menuViewModel.uiState.collectAsState()
+    val restauranteState by restauranteViewModel.uiState.collectAsState()
+
     val auth = FirebaseAuth.getInstance()
-    val user = auth.currentUser
-    val db = FirebaseFirestore.getInstance()
+    val uid = auth.currentUser?.uid ?: ""
 
-    var nombreRestaurante by remember { mutableStateOf("") }
-    var productos by remember { mutableStateOf<List<Producto>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(true) {
-        try {
-            if (user != null) {
-                // Obtener nombre del restaurante
-                val restauranteDoc = db.collection("restaurantes").document(user.uid).get().await()
-                nombreRestaurante = restauranteDoc.getString("nombreRestaurante") ?: "Mi Restaurante"
-
-                // Escuchar cambios en tiempo real de los productos
-                db.collection("restaurantes")
-                    .document(user.uid)
-                    .collection("productos")
-                    .addSnapshotListener { snapshot, error ->
-                        if (error != null) {
-                            Log.e("MenuRestauranteScreen", "Error al escuchar productos: ${error.message}")
-                            return@addSnapshotListener
-                        }
-
-                        if (snapshot != null) {
-                            val listaProductos = snapshot.documents.mapNotNull { doc ->
-                                val producto = doc.toObject(Producto::class.java)
-                                producto?.copy(
-                                    id = doc.id,
-                                    nombreRestaurante = nombreRestaurante
-                                )
-                            }
-                            productos = listaProductos
-                            Log.d("MenuRestauranteScreen", "Productos actualizados: ${productos.size}")
-                        }
-                        isLoading = false
-                    }
-            }
-        } catch (e: Exception) {
-            Log.e("MenuRestauranteScreen", "Error al cargar datos: ${e.message}")
-            isLoading = false
+    // 3. Iniciamos la observación de productos y cargamos los datos del restaurante
+    LaunchedEffect(uid) {
+        if (uid.isNotEmpty()) {
+            menuViewModel.observarProductosRestaurante(uid)
+            restauranteViewModel.cargarRestaurante(uid) // <-- Carga el nombre y datos del perfil
         }
     }
 
@@ -159,8 +137,9 @@ fun MenuRestauranteScreen(
                     }
                 }
 
+                // 4. Usamos el estado del RestauranteViewModel para el nombre
                 Text(
-                    text = nombreRestaurante,
+                    text = restauranteState.restaurante?.nombreRestaurante ?: "Mi Restaurante",
                     style = TextStyle(
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
@@ -178,63 +157,42 @@ fun MenuRestauranteScreen(
                         .padding(start = 28.dp, top = 4.dp, bottom = 20.dp)
                 )
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(productos) { producto ->
-                        ProductoCard(
-                            producto = producto,
-                            onClick = {
-                                // Navegar a editar producto con el ID
-                                navController.navigate("editarProducto/${producto.id}")
-                            },
-                            onDelete = {
-                                user?.let { usuario ->
-
-                                    // 1. Primero eliminar la imagen del Storage (si existe)
-                                    try {
-                                        if (!producto.imagenUrl.isNullOrEmpty()) {
-                                            val storageRef = com.google.firebase.storage.FirebaseStorage
-                                                .getInstance()
-                                                .getReferenceFromUrl(producto.imagenUrl)
-
-                                            storageRef.delete()
-                                                .addOnSuccessListener {
-                                                    Log.d("MenuRestauranteScreen", "Imagen eliminada de Storage")
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    Log.e("MenuRestauranteScreen", "Error al eliminar imagen: ${e.message}")
-                                                }
-                                        }
-                                    } catch (e: Exception) {
-                                        Log.e("MenuRestauranteScreen", "URL de imagen inválida: ${e.message}")
-                                    }
-
-                                    // 2. Ahora eliminar el documento de Firestore
-                                    db.collection("restaurantes")
-                                        .document(usuario.uid)
-                                        .collection("productos")
-                                        .document(producto.id)
-                                        .delete()
-                                        .addOnSuccessListener {
-                                            Log.d("MenuRestauranteScreen", "Producto eliminado: ${producto.id}")
-                                        }
-                                        .addOnFailureListener { error ->
-                                            Log.e("MenuRestauranteScreen", "Error al eliminar: ${error.message}")
-                                        }
-                                }
-                            }
-                        )
+                // 5. Manejo del estado de carga y lista de productos (usa menuViewModel state)
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
                     }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(uiState.productos) { producto ->
+                            ProductoCard(
+                                producto = producto,
+                                onClick = {
+                                    navController.navigate("editarProducto/${producto.id}")
+                                },
+                                onDelete = {
+                                    // 6. Delegamos la eliminación al MenuViewModel
+                                    if (uid.isNotEmpty()) {
+                                        menuViewModel.eliminarProducto(uid, producto.id, producto.imagenUrl)
+                                    }
+                                }
+                            )
+                        }
 
-                    item {
-                        AddBurgerButton(onClick = {
-                            navController.navigate("agregarProducto")
-                        })
+                        item {
+                            AddBurgerButton(onClick = {
+                                navController.navigate("agregarProducto")
+                            })
+                        }
                     }
                 }
             }
