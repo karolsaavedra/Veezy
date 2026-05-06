@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.edu.karolsaavedra.veezy.R
+import co.edu.karolsaavedra.veezy.domain.model.Producto
 import co.edu.karolsaavedra.veezy.menu.BurgerInfo
-import co.edu.karolsaavedra.veezy.menu.Producto
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.android.gms.maps.model.LatLng

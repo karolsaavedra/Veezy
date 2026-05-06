@@ -186,7 +186,6 @@ fun NavigationApp() {
                 )
             }
 
-            // (si la necesitas como otra ruta aparte)
             composable("menuRestauranteScreen") { MenuRestauranteScreen(navController = navController) }
             composable("scanRestaurante") { QRScreen(navController = navController) }
             composable("profileRestaurante") { ClientsWaitingScreen(navController = navController) }
@@ -194,7 +193,15 @@ fun NavigationApp() {
             composable("editarMenu") { EditarMenuScreen(navController = navController) }
             composable("agregarProducto") { AgregarProductoScreen(navController = navController) }
 
-
+            // --> FIX: RUTA AGREGADA AQUÍ <--
+            composable(
+                route = "editarProducto/{productoId}",
+                arguments = listOf(navArgument("productoId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val productoId = backStackEntry.arguments?.getString("productoId") ?: ""
+                // Por ahora redirige a agregarProducto hasta tener pantalla de edición
+                AgregarProductoScreen(navController = navController)
+            }
 
             composable("ReservarTurnoRestaurante/{restauranteNombre}") { backStackEntry ->
                 val restauranteNombre = backStackEntry.arguments?.getString("restauranteNombre") ?: "Desconocido"
@@ -217,6 +224,7 @@ fun NavigationApp() {
                 val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
                 ChatDetailScreen(navController = navController, chatId = chatId)
             }
+
             composable(
                 route = "TurnoPendiente/{turnoId}",
                 arguments = listOf(navArgument("turnoId") { type = NavType.StringType })
@@ -236,6 +244,7 @@ fun NavigationApp() {
                     productoId = productoId
                 )
             }
+
             composable("infoProducto/{restauranteNombre}/{productoId}") { backStackEntry ->
                 val restauranteNombre = backStackEntry.arguments?.getString("restauranteNombre") ?: ""
                 val productoId = backStackEntry.arguments?.getString("productoId") ?: ""
@@ -245,8 +254,6 @@ fun NavigationApp() {
         }
     }
 }
-
-
 
 @Composable
 fun LoadingScreen() {

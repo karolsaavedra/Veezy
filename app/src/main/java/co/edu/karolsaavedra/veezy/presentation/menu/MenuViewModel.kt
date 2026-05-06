@@ -4,13 +4,15 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.karolsaavedra.veezy.domain.model.Producto
+import co.edu.karolsaavedra.veezy.domain.repository.ProductoRepository
+import co.edu.karolsaavedra.veezy.domain.repository.RestauranteRepository // <-- Import agregado
 import co.edu.karolsaavedra.veezy.domain.usecase.producto.AgregarProductoUseCase
 import co.edu.karolsaavedra.veezy.domain.usecase.producto.EliminarProductoUseCase
 import co.edu.karolsaavedra.veezy.domain.usecase.producto.ObtenerTodosProductosUseCase
-import co.edu.karolsaavedra.veezy.domain.repository.ProductoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
 
 data class MenuUiState(
     val isLoading: Boolean = false,
@@ -23,7 +25,8 @@ class MenuViewModel(
     private val obtenerTodosProductosUseCase: ObtenerTodosProductosUseCase,
     private val agregarProductoUseCase: AgregarProductoUseCase,
     private val eliminarProductoUseCase: EliminarProductoUseCase,
-    private val productoRepository: ProductoRepository
+    private val productoRepository: ProductoRepository,
+    private val restauranteRepository: RestauranteRepository // <-- Dependencia agregada
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MenuUiState())
@@ -50,13 +53,23 @@ class MenuViewModel(
         }
     }
 
-    fun observarProductosRestaurante(restauranteUid: String) {
+    fun observarProductosRestaurante(uid: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            productoRepository.observarProductosRestaurante(restauranteUid).collect { lista ->
+
+            // 1. Obtener el nombre del restaurante del documento padre
+            val nombreRestaurante = restauranteRepository
+                .obtenerRestaurante(uid)
+                .getOrNull()?.nombreRestaurante ?: ""
+
+            // 2. Observar productos e inyectarles el nombre
+            productoRepository.observarProductosRestaurante(uid).collect { lista ->
+                val listaConNombre = lista.map {
+                    it.copy(nombreRestaurante = nombreRestaurante)
+                }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    productos = lista
+                    productos = listaConNombre
                 )
             }
         }

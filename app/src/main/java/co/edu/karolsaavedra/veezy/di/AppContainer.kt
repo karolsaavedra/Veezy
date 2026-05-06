@@ -92,7 +92,8 @@ object AppContainer {
         obtenerTodosProductosUseCase,
         agregarProductoUseCase,
         eliminarProductoUseCase,
-        productoRepository
+        productoRepository,
+        restauranteRepository   // ← AGREGA ESTO
     )
 
     fun provideRestauranteViewModel() = RestauranteViewModel(
