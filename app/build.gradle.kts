@@ -98,7 +98,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
 
 
